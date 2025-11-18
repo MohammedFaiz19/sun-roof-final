@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Sparkles } from "lucide-react";
-import { useMenu, MenuItem } from "@/hooks/useMenu";
+import { useMenuItems } from "@/hooks/useMenuItems";
+import type { MenuItem } from "@/hooks/useMenu";
 import { MenuSearch } from "@/components/menu/MenuSearch";
 import { MenuFilters, MenuFiltersState } from "@/components/menu/MenuFilters";
 import { MenuGrid } from "@/components/menu/MenuGrid";
@@ -11,7 +12,24 @@ import { MenuSchema } from "@/components/menu/MenuSchema";
 import { Helmet } from "react-helmet";
 
 const Menu = () => {
-  const { data: menuItems = [], isLoading } = useMenu();
+  const { data: menuData = [], isLoading } = useMenuItems();
+  
+  // Transform database items to match MenuItem interface
+  const menuItems: MenuItem[] = menuData.map(item => ({
+    id: item.id,
+    name: item.name,
+    category: item.category.split(' → ')[0],
+    subCategory: item.category.includes('→') ? item.category.split('→')[1].trim() : '',
+    price: parseInt(item.price),
+    veg: item.veg_nonveg === 'veg',
+    description: item.description,
+    image: item.generated_image_url || item.image_url || '',
+    alt: item.name,
+    spiceLevel: 'mild' as const,
+    allergens: [],
+    tags: [],
+    available: item.is_active,
+  }));
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [filters, setFilters] = useState<MenuFiltersState>({

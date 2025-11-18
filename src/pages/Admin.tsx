@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import HeroSlidesManager from "@/components/admin/HeroSlidesManager";
 import GalleryManager from "@/components/admin/GalleryManager";
 import MenuManager from "@/components/admin/MenuManager";
+import { BatchImageGenerator } from "@/components/admin/BatchImageGenerator";
 import ContactSettingsManager from "@/components/admin/ContactSettingsManager";
 import { Shield } from "lucide-react";
 
@@ -32,7 +33,8 @@ const Admin = () => {
             <TabsTrigger value="contact">Contact Settings</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="menu" className="space-y-4">
+          <TabsContent value="menu" className="space-y-6">
+            <BatchImageGenerator />
             <MenuManager />
           </TabsContent>
 

@@ -12,6 +12,7 @@ export interface MenuItem {
   generated_image_url?: string;
   image_generation_status?: string;
   display_order: number;
+  is_active: boolean;
 }
 
 export const useMenuItems = () => {

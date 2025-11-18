@@ -1,1 +1,7 @@
 project_id = "lhthldzjhcnrgguqkwzz"
+
+[functions.generate-dish-image]
+verify_jwt = false
+
+[functions.batch-generate-images]
+verify_jwt = false
