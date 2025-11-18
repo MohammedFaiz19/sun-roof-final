@@ -36,19 +36,23 @@ interface MenuFiltersProps {
 }
 
 const categories = [
-  { value: "Starters", label: "Starters" },
+  { value: "Starters → Soups", label: "Starters → Soups" },
   { value: "Chinese Veg Starter", label: "Chinese Veg Starter" },
   { value: "Chinese Non-Veg Starter", label: "Chinese Non-Veg Starter" },
   { value: "Momos", label: "Momos" },
   { value: "Sharings", label: "Sharings" },
-  { value: "Main Course Chinese", label: "Main Course Chinese" },
+  { value: "Main Course Chinese → Rice", label: "Main Course Chinese → Rice" },
+  { value: "Main Course Chinese → Noodles", label: "Main Course Chinese → Noodles" },
   { value: "Pasta", label: "Pasta" },
   { value: "Pizza", label: "Pizza" },
   { value: "Burger", label: "Burgers" },
   { value: "Sandwiches", label: "Sandwiches" },
-  { value: "Healthy & Light", label: "Healthy & Light" },
+  { value: "Healthy & Light → Salads", label: "Healthy & Light → Salads" },
+  { value: "Healthy & Light → Juices", label: "Healthy & Light → Juices" },
   { value: "Desserts", label: "Desserts" },
-  { value: "Beverages", label: "Beverages" },
+  { value: "Beverages → Mojitos", label: "Beverages → Mojitos" },
+  { value: "Beverages → Milkshakes", label: "Beverages → Milkshakes" },
+  { value: "Beverages", label: "Beverages (Other)" },
 ];
 
 const dietaryOptions = [

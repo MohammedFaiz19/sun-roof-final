@@ -23,8 +23,7 @@ export const useMenuItems = () => {
         .from('menu_items')
         .select('*')
         .eq('is_active', true)
-        .order('category', { ascending: true })
-        .order('display_order', { ascending: true });
+        .order('display_order', { ascending: true }); // Only order by display_order to preserve exact menu structure
       
       if (error) throw error;
       return data as MenuItem[];

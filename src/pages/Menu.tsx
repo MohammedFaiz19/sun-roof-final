@@ -21,11 +21,32 @@ import {
 const Menu = () => {
   const { data: menuData = [], isLoading } = useMenuItems();
   
+  // Define exact category order as specified
+  const categoryOrder = [
+    "Starters → Soups",
+    "Chinese Veg Starter",
+    "Chinese Non-Veg Starter",
+    "Momos",
+    "Sharings",
+    "Main Course Chinese → Rice",
+    "Main Course Chinese → Noodles",
+    "Pasta",
+    "Pizza",
+    "Burger",
+    "Sandwiches",
+    "Healthy & Light → Salads",
+    "Healthy & Light → Juices",
+    "Desserts",
+    "Beverages → Mojitos",
+    "Beverages → Milkshakes",
+    "Beverages",
+  ];
+  
   // Transform database items to match MenuItem interface
   const menuItems: MenuItem[] = menuData.map(item => ({
     id: item.id,
     name: item.name,
-    category: item.category.split(' → ')[0],
+    category: item.category, // Keep full category name with subcategory
     subCategory: item.category.includes('→') ? item.category.split('→')[1].trim() : '',
     price: parseInt(item.price),
     veg: item.veg_nonveg === 'veg',
@@ -93,11 +114,8 @@ const Menu = () => {
       case "price-high":
         return items.sort((a, b) => b.price - a.price);
       case "popularity":
-        return items.sort((a, b) => {
-          const aPopular = a.tags?.includes("popular") ? 1 : 0;
-          const bPopular = b.tags?.includes("popular") ? 1 : 0;
-          return bPopular - aPopular;
-        });
+        // Keep original database order (already sorted by display_order from database)
+        return items;
       default:
         return items;
     }
@@ -111,14 +129,22 @@ const Menu = () => {
   }, [menuItems]);
 
   const groupedItems = useMemo(() => {
-    return sortedItems.reduce((acc, item) => {
+    const grouped = sortedItems.reduce((acc, item) => {
       if (!acc[item.category]) {
         acc[item.category] = [];
       }
       acc[item.category].push(item);
       return acc;
     }, {} as Record<string, MenuItem[]>);
-  }, [sortedItems]);
+    
+    // Return categories in exact specified order
+    return categoryOrder.reduce((acc, category) => {
+      if (grouped[category]) {
+        acc[category] = grouped[category];
+      }
+      return acc;
+    }, {} as Record<string, MenuItem[]>);
+  }, [sortedItems, categoryOrder]);
 
   if (isLoading) {
     return (
