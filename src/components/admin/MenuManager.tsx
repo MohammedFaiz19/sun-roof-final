@@ -1,0 +1,291 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Upload, RefreshCw, Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+
+const MenuManager = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+
+  // Fetch menu items
+  const { data: menuItems, isLoading } = useQuery({
+    queryKey: ['admin-menu-items'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select('*')
+        .order('category', { ascending: true })
+        .order('display_order', { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Regenerate image for a single item
+  const regenerateImage = useMutation({
+    mutationFn: async (itemId: string) => {
+      const item = menuItems?.find(i => i.id === itemId);
+      if (!item) throw new Error('Item not found');
+
+      // Update status to generating
+      await supabase
+        .from('menu_items')
+        .update({ image_generation_status: 'generating' })
+        .eq('id', itemId);
+
+      // Call edge function to generate image
+      const { data, error } = await supabase.functions.invoke('generate-dish-image', {
+        body: {
+          dishName: item.name,
+          category: item.category,
+          vegNonVeg: item.veg_nonveg,
+          description: item.description,
+        },
+      });
+
+      if (error) throw error;
+
+      // Update with generated image
+      await supabase
+        .from('menu_items')
+        .update({
+          generated_image_url: data.imageUrl,
+          image_generation_status: 'completed',
+        })
+        .eq('id', itemId);
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] });
+      toast({
+        title: "Image Generated!",
+        description: "Dish image has been successfully generated.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate image. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Generate all missing images
+  const generateAllImages = async () => {
+    setIsGeneratingImages(true);
+    const itemsWithoutImages = menuItems?.filter(
+      item => !item.generated_image_url || item.image_generation_status === 'failed'
+    ) || [];
+
+    toast({
+      title: "Generating Images...",
+      description: `Processing ${itemsWithoutImages.length} dishes`,
+    });
+
+    for (const item of itemsWithoutImages) {
+      try {
+        await regenerateImage.mutateAsync(item.id);
+        // Add delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error) {
+        console.error(`Failed to generate image for ${item.name}:`, error);
+      }
+    }
+
+    setIsGeneratingImages(false);
+    toast({
+      title: "Batch Complete!",
+      description: "All images have been processed.",
+    });
+  };
+
+  // Handle CSV upload
+  const handleCSVUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!csvFile) return;
+
+    const text = await csvFile.text();
+    const lines = text.split('\n').filter(line => line.trim());
+    const headers = lines[0].split(',').map(h => h.trim());
+
+    if (!headers.includes('name') || !headers.includes('category')) {
+      toast({
+        title: "Invalid CSV",
+        description: "CSV must have 'category', 'name', 'price', 'veg_nonveg', 'description' columns",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const items = lines.slice(1).map((line, index) => {
+      const values = line.split(',').map(v => v.trim());
+      return {
+        category: values[headers.indexOf('category')],
+        name: values[headers.indexOf('name')],
+        price: values[headers.indexOf('price')],
+        veg_nonveg: values[headers.indexOf('veg_nonveg')],
+        description: values[headers.indexOf('description')] || '',
+        display_order: index,
+      };
+    });
+
+    const { error } = await supabase.from('menu_items').insert(items);
+
+    if (error) {
+      toast({
+        title: "Upload Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] });
+    setCsvFile(null);
+    toast({
+      title: "Menu Uploaded!",
+      description: `${items.length} items added successfully.`,
+    });
+
+    // Auto-generate images for new items
+    if (confirm('Generate AI images for all new dishes?')) {
+      await generateAllImages();
+    }
+  };
+
+  const groupedItems = menuItems?.reduce((acc, item) => {
+    if (!acc[item.category]) acc[item.category] = [];
+    acc[item.category].push(item);
+    return acc;
+  }, {} as Record<string, typeof menuItems>);
+
+  return (
+    <div className="space-y-6">
+      {/* CSV Upload Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload Menu CSV</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleCSVUpload} className="space-y-4">
+            <div>
+              <Input
+                type="file"
+                accept=".csv"
+                onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+                className="border-2"
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                CSV format: category,name,price,veg_nonveg,description
+              </p>
+            </div>
+            <Button type="submit" disabled={!csvFile}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload & Generate Images
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Batch Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Batch Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={generateAllImages}
+            disabled={isGeneratingImages}
+            className="gradient-foodie text-white"
+          >
+            {isGeneratingImages ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <ImageIcon className="mr-2 h-4 w-4" />
+                Generate All Missing Images
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Menu Items List */}
+      {isLoading ? (
+        <p>Loading menu items...</p>
+      ) : (
+        Object.entries(groupedItems || {}).map(([category, items]) => (
+          <Card key={category}>
+            <CardHeader>
+              <CardTitle>{category}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-4 p-4 border-2 border-border rounded-lg"
+                  >
+                    {/* Image Preview */}
+                    <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {item.generated_image_url ? (
+                        <img
+                          src={item.generated_image_url}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                      )}
+                    </div>
+
+                    {/* Item Info */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold">{item.name}</h4>
+                        <Badge variant={item.veg_nonveg === 'veg' ? 'default' : 'destructive'}>
+                          {item.veg_nonveg === 'veg' ? '🟢 Veg' : item.veg_nonveg === 'egg' ? '🟤 Egg' : '🔴 Non-veg'}
+                        </Badge>
+                        <Badge variant="outline">{item.price}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Status: {item.image_generation_status || 'pending'}
+                      </p>
+                    </div>
+
+                    {/* Actions */}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => regenerateImage.mutate(item.id)}
+                      disabled={regenerateImage.isPending}
+                    >
+                      <RefreshCw className={`h-4 w-4 ${regenerateImage.isPending ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
+    </div>
+  );
+};
+
+export default MenuManager;
