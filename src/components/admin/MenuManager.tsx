@@ -8,6 +8,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, RefreshCw, Plus, Trash2, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { z } from "zod";
+
+// CSV validation schema
+const menuItemSchema = z.object({
+  category: z.string()
+    .trim()
+    .min(1, "Category is required")
+    .max(100, "Category must be less than 100 characters"),
+  name: z.string()
+    .trim()
+    .min(1, "Name is required")
+    .max(100, "Name must be less than 100 characters"),
+  price: z.string()
+    .trim()
+    .regex(/^₹?\d+$/, "Price must be a valid number (e.g., ₹150 or 150)"),
+  veg_nonveg: z.enum(["veg", "non-veg", "egg"], {
+    errorMap: () => ({ message: "Must be 'veg', 'non-veg', or 'egg'" })
+  }),
+  description: z.string()
+    .trim()
+    .max(500, "Description must be less than 500 characters"),
+  display_order: z.number().int().nonnegative()
+});
+
+type ValidatedMenuItem = z.infer<typeof menuItemSchema>;
 
 const MenuManager = () => {
   const { toast } = useToast();
@@ -119,18 +144,26 @@ const MenuManager = () => {
     const lines = text.split('\n').filter(line => line.trim());
     const headers = lines[0].split(',').map(h => h.trim());
 
-    if (!headers.includes('name') || !headers.includes('category')) {
+    // Validate required headers
+    const requiredHeaders = ['category', 'name', 'price', 'veg_nonveg'];
+    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+    
+    if (missingHeaders.length > 0) {
       toast({
         title: "Invalid CSV",
-        description: "CSV must have 'category', 'name', 'price', 'veg_nonveg', 'description' columns",
+        description: `Missing required columns: ${missingHeaders.join(', ')}. CSV must have 'category', 'name', 'price', 'veg_nonveg', 'description' columns`,
         variant: "destructive",
       });
       return;
     }
 
-    const items = lines.slice(1).map((line, index) => {
+    // Parse and validate each item
+    const validationErrors: string[] = [];
+    const items: ValidatedMenuItem[] = [];
+    
+    lines.slice(1).forEach((line, index) => {
       const values = line.split(',').map(v => v.trim());
-      return {
+      const item = {
         category: values[headers.indexOf('category')],
         name: values[headers.indexOf('name')],
         price: values[headers.indexOf('price')],
@@ -138,9 +171,61 @@ const MenuManager = () => {
         description: values[headers.indexOf('description')] || '',
         display_order: index,
       };
+
+      // Validate with Zod schema
+      try {
+        const validatedItem = menuItemSchema.parse(item);
+        items.push(validatedItem);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          validationErrors.push(
+            `Row ${index + 2} (${item.name || 'unnamed'}): ${error.errors.map(e => e.message).join(', ')}`
+          );
+        }
+      }
     });
 
-    const { error } = await supabase.from('menu_items').insert(items);
+    // If validation errors, show them to user
+    if (validationErrors.length > 0) {
+      toast({
+        title: "Validation Failed",
+        description: (
+          <div className="max-h-48 overflow-y-auto">
+            <p className="font-semibold mb-2">Found {validationErrors.length} error(s):</p>
+            <ul className="list-disc pl-4 space-y-1 text-xs">
+              {validationErrors.slice(0, 5).map((error, i) => (
+                <li key={i}>{error}</li>
+              ))}
+              {validationErrors.length > 5 && (
+                <li>...and {validationErrors.length - 5} more errors</li>
+              )}
+            </ul>
+          </div>
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (items.length === 0) {
+      toast({
+        title: "No Valid Items",
+        description: "CSV contains no valid menu items to upload",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase.from('menu_items').insert(
+      items as Array<{
+        category: string;
+        name: string;
+        price: string;
+        veg_nonveg: string;
+        description: string;
+        display_order: number;
+      }>
+    );
 
     if (error) {
       toast({
