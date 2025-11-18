@@ -158,9 +158,7 @@ const Menu = () => {
               Discover our carefully curated selection of 145+ dishes
             </p>
             <div className="flex items-center justify-center gap-4 mb-2">
-              <p className="text-sm text-muted-foreground font-inter">
-                {sortedItems.length} {sortedItems.length === 1 ? 'dish' : 'dishes'} available
-              </p>
+              
               
             </div>
           </div>
