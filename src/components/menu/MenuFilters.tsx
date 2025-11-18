@@ -37,7 +37,11 @@ interface MenuFiltersProps {
 
 const categories = [
   { value: "Starters", label: "Starters" },
-  { value: "Main Course", label: "Main Course" },
+  { value: "Chinese Veg Starter", label: "Chinese Veg Starter" },
+  { value: "Chinese Non-Veg Starter", label: "Chinese Non-Veg Starter" },
+  { value: "Momos", label: "Momos" },
+  { value: "Sharings", label: "Sharings" },
+  { value: "Main Course Chinese", label: "Main Course Chinese" },
   { value: "Pasta", label: "Pasta" },
   { value: "Pizza", label: "Pizza" },
   { value: "Burger", label: "Burgers" },
