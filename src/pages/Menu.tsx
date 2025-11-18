@@ -1,232 +1,171 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Sparkles, Search, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useMenuItems } from "@/hooks/useMenuItems";
+import { Sparkles } from "lucide-react";
+import { useMenu, MenuItem } from "@/hooks/useMenu";
+import { MenuSearch } from "@/components/menu/MenuSearch";
+import { MenuFilters, MenuFiltersState } from "@/components/menu/MenuFilters";
+import { MenuGrid } from "@/components/menu/MenuGrid";
+import { DishModal } from "@/components/menu/DishModal";
+import { MenuSchema } from "@/components/menu/MenuSchema";
+import { Helmet } from "react-helmet";
 
 const Menu = () => {
+  const { data: menuItems = [], isLoading } = useMenu();
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "veg" | "non-veg">("all");
-  
-  const { data: menuItems, isLoading, error } = useMenuItems();
-
-  const filteredItems = menuItems?.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = 
-      filterType === "all" ||
-      (filterType === "veg" && item.veg_nonveg === "veg") ||
-      (filterType === "non-veg" && item.veg_nonveg !== "veg");
-    return matchesSearch && matchesFilter;
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [filters, setFilters] = useState<MenuFiltersState>({
+    categories: [],
+    dietary: [],
+    spiceLevel: "all",
+    priceRange: [0, 400],
+    tags: [],
   });
 
-  // Define the menu structure with sections and categories
-  const menuStructure = [
-    {
-      section: 'Starters',
-      emoji: '🍜',
-      categories: ['Soup', 'Chinese Veg Starter', 'Chinese Non-Veg Starter', 'Momos', 'Sharings']
-    },
-    {
-      section: 'Main Course',
-      emoji: '🍕',
-      categories: ['Main Course Chinese', 'Side Dish Chinese', 'Pasta', 'Pizza', 'Burger', 'Sandwiches']
-    },
-    {
-      section: 'Healthy & Light',
-      emoji: '🥗',
-      categories: ['Salad', 'Juices']
-    },
-    {
-      section: 'Desserts',
-      emoji: '🍰',
-      categories: ['Dessert']
-    },
-    {
-      section: 'Beverages',
-      emoji: '🍹',
-      categories: ['Mojitos', 'Milkshakes']
-    }
-  ];
+  const filteredItems = useMemo(() => {
+    return menuItems.filter((item) => {
+      // Search filter
+      const matchesSearch =
+        searchQuery === "" ||
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.subCategory.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const groupedItems = filteredItems?.reduce((acc, item) => {
-    if (!acc[item.category]) acc[item.category] = [];
-    acc[item.category].push(item);
-    return acc;
-  }, {} as Record<string, typeof filteredItems>);
+      // Category filter
+      const matchesCategory =
+        filters.categories.length === 0 ||
+        filters.categories.includes(item.category);
 
-  const categoryEmojis: Record<string, string> = {
-    'Soup': '🍲',
-    'Chinese Veg Starter': '🥟',
-    'Chinese Non-Veg Starter': '🍗',
-    'Momos': '🥟',
-    'Sharings': '🍟',
-    'Main Course Chinese': '🍜',
-    'Side Dish Chinese': '🥘',
-    'Pasta': '🍝',
-    'Pizza': '🍕',
-    'Burger': '🍔',
-    'Sandwiches': '🥪',
-    'Salad': '🥗',
-    'Juices': '🥤',
-    'Dessert': '🍰',
-    'Mojitos': '🍹',
-    'Milkshakes': '🥤',
-  };
+      // Dietary filter
+      const matchesDietary =
+        filters.dietary.length === 0 ||
+        (filters.dietary.includes("veg") && item.veg) ||
+        (filters.dietary.includes("non-veg") && !item.veg);
+
+      // Spice level filter
+      const matchesSpice =
+        filters.spiceLevel === "all" || item.spiceLevel === filters.spiceLevel;
+
+      return matchesSearch && matchesCategory && matchesDietary && matchesSpice;
+    });
+  }, [menuItems, searchQuery, filters]);
+
+  const categoryCounts = useMemo(() => {
+    return menuItems.reduce((acc, item) => {
+      acc[item.category] = (acc[item.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [menuItems]);
+
+  const groupedItems = useMemo(() => {
+    return filteredItems.reduce((acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = [];
+      }
+      acc[item.category].push(item);
+      return acc;
+    }, {} as Record<string, MenuItem[]>);
+  }, [filteredItems]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 py-24">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="aspect-[4/5] bg-muted rounded-2xl animate-pulse" />
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <main className="container mx-auto px-4 py-24" id="main-content">
-        <div className="mb-12 text-center">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <Sparkles className="h-8 w-8 text-flat-yellow animate-wiggle" />
-            <h1 className="font-playfair text-5xl font-bold gradient-text">Our Menu</h1>
-            <Sparkles className="h-8 w-8 text-flat-coral animate-wiggle" />
+    <>
+      <Helmet>
+        <title>Sunroof Café — Full Menu | 145+ Dishes | Starters, Mains, Desserts & Drinks</title>
+        <meta
+          name="description"
+          content="Explore Sunroof Café's complete menu with 145+ dishes including Indo-Chinese starters, pasta, pizza, burgers, desserts, and beverages. Order online or visit us today!"
+        />
+        <meta property="og:title" content="Sunroof Café — Full Menu" />
+        <meta
+          property="og:description"
+          content="Browse our extensive menu featuring soups, starters, momos, rice, noodles, pasta, pizza, burgers, salads, desserts, and drinks."
+        />
+      </Helmet>
+
+      <MenuSchema items={menuItems} />
+
+      <div className="min-h-screen bg-background">
+        <Navigation />
+
+        <main className="container mx-auto px-4 py-24" id="main-content">
+          {/* Header */}
+          <div className="mb-12 text-center">
+            <div className="inline-flex items-center gap-3 mb-4">
+              <Sparkles className="h-8 w-8 text-flat-yellow animate-wiggle" />
+              <h1 className="font-playfair text-5xl md:text-6xl font-bold gradient-text">
+                Our Menu
+              </h1>
+              <Sparkles className="h-8 w-8 text-flat-coral animate-wiggle" />
+            </div>
+            <p className="mx-auto max-w-2xl font-inter text-lg text-muted-foreground mb-2">
+              Discover our carefully curated selection of 145+ dishes
+            </p>
+            <p className="text-sm text-muted-foreground font-inter">
+              {filteredItems.length} {filteredItems.length === 1 ? 'dish' : 'dishes'} available
+            </p>
           </div>
-          <p className="mx-auto max-w-2xl font-inter text-lg text-foreground">
-            Explore our carefully curated selection of dishes
-          </p>
-          
-          <div className="mx-auto max-w-2xl mt-8 space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search for dishes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-lg border-2 border-primary/20 focus:border-primary rounded-full"
+
+          {/* Search & Filters */}
+          <div className="mx-auto max-w-4xl mb-12 space-y-4">
+            <MenuSearch value={searchQuery} onChange={setSearchQuery} />
+            <div className="flex items-center justify-center gap-3">
+              <MenuFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                categoryCounts={categoryCounts}
               />
             </div>
-            
-            <div className="flex justify-center gap-3">
-              <Button
-                variant={filterType === "all" ? "default" : "outline"}
-                onClick={() => setFilterType("all")}
-                className="rounded-full"
-              >
-                All
-              </Button>
-              <Button
-                variant={filterType === "veg" ? "default" : "outline"}
-                onClick={() => setFilterType("veg")}
-                className="rounded-full"
-              >
-                🟢 Vegetarian
-              </Button>
-              <Button
-                variant={filterType === "non-veg" ? "default" : "outline"}
-                onClick={() => setFilterType("non-veg")}
-                className="rounded-full"
-              >
-                🔴 Non-Vegetarian
-              </Button>
-            </div>
           </div>
-          
-          <div className="mx-auto mt-6 h-1 w-32 gradient-foodie rounded-full" />
-        </div>
 
-        {isLoading && (
-          <div className="flex justify-center py-20">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          </div>
-        )}
-
-        {error && (
-          <div className="text-center py-20">
-            <p className="text-destructive">Failed to load menu.</p>
-          </div>
-        )}
-
-        {menuStructure.map((section) => {
-          const sectionCategories = section.categories.filter(cat => groupedItems?.[cat]?.length > 0);
-          if (sectionCategories.length === 0) return null;
-          
-          return (
-            <div key={section.section} className="mb-20">
-              {/* Section Header */}
-              <div className="mb-10 text-center">
-                <div className="inline-flex items-center gap-4 mb-4">
-                  <span className="text-6xl">{section.emoji}</span>
-                  <h2 className="font-playfair text-5xl font-bold gradient-text">{section.section}</h2>
-                  <span className="text-6xl">{section.emoji}</span>
-                </div>
-                <div className="mx-auto mt-4 h-1 w-48 gradient-foodie rounded-full" />
-              </div>
-
-              {/* Categories within this section */}
-              {sectionCategories.map((category) => (
-                <div 
-                  key={category} 
-                  className="mb-12 p-8 rounded-3xl bg-gradient-card border-2 border-primary/30 shadow-medium"
-                >
-                  <div className="mb-8 text-center">
-                    <div className="inline-flex items-center gap-3 mb-4">
-                      <span className="text-4xl">{categoryEmojis[category] || '🍽️'}</span>
-                      <h3 className="font-playfair text-3xl font-bold text-foreground">{category}</h3>
-                    </div>
+          {/* Menu Grid by Category */}
+          {Object.keys(groupedItems).length > 0 ? (
+            <div className="space-y-16">
+              {Object.entries(groupedItems).map(([category, items]) => (
+                <section key={category} id={category.toLowerCase().replace(/\s+/g, '-')}>
+                  <div className="mb-8">
+                    <h2 className="font-playfair text-3xl md:text-4xl font-bold text-primary mb-2">
+                      {category}
+                    </h2>
+                    <div className="h-1 w-24 bg-gradient-foodie rounded-full" />
+                    <p className="text-sm text-muted-foreground font-inter mt-2">
+                      {items.length} {items.length === 1 ? 'item' : 'items'}
+                    </p>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {groupedItems[category].map((item) => (
-                      <Card 
-                        key={item.id}
-                        className="overflow-hidden hover-lift border-2 hover:border-primary transition-all"
-                      >
-                        <div className="relative h-48 bg-gradient-to-br from-primary/10 to-accent/10">
-                          {item.generated_image_url ? (
-                            <img
-                              src={item.generated_image_url}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <span className="text-6xl">{categoryEmojis[category] || '🍽️'}</span>
-                            </div>
-                          )}
-                          
-                          <div className="absolute top-3 right-3">
-                            <Badge variant={item.veg_nonveg === 'veg' ? 'default' : 'destructive'}>
-                              {item.veg_nonveg === 'veg' ? '🟢' : item.veg_nonveg === 'egg' ? '🟤' : '🔴'}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between mb-3">
-                            <h3 className="font-playfair text-xl font-bold flex-1">{item.name}</h3>
-                            <span className="text-primary font-bold text-lg ml-3">{item.price}</span>
-                          </div>
-                          {item.description && (
-                            <p className="text-sm text-muted-foreground">{item.description}</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
+                  <MenuGrid items={items} onItemClick={setSelectedItem} />
+                </section>
               ))}
             </div>
-          );
-        })}
+          ) : (
+            <MenuGrid items={[]} onItemClick={setSelectedItem} />
+          )}
+        </main>
 
-        {filteredItems?.length === 0 && !isLoading && (
-          <div className="text-center py-20">
-            <p className="text-muted-foreground">No dishes found.</p>
-          </div>
-        )}
-      </main>
+        <Footer />
 
-      <Footer />
-    </div>
+        {/* Dish Detail Modal */}
+        <DishModal
+          item={selectedItem}
+          isOpen={selectedItem !== null}
+          onClose={() => setSelectedItem(null)}
+        />
+      </div>
+    </>
   );
 };
 
