@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Sparkles, ArrowUpDown } from "lucide-react";
@@ -9,6 +9,8 @@ import { MenuFilters, MenuFiltersState } from "@/components/menu/MenuFilters";
 import { MenuGrid } from "@/components/menu/MenuGrid";
 import { DishModal } from "@/components/menu/DishModal";
 import { MenuSchema } from "@/components/menu/MenuSchema";
+import { MenuAnimationCanvas } from "@/components/menu/MenuAnimationCanvas";
+import { AnimationToggle } from "@/components/menu/AnimationToggle";
 import { Helmet } from "react-helmet";
 import {
   Select,
@@ -20,6 +22,15 @@ import {
 
 const Menu = () => {
   const { data: menuData = [], isLoading } = useMenuItems();
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
+
+  // Check for prefers-reduced-motion
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      setAnimationsEnabled(false);
+    }
+  }, []);
   
   // Define exact category order as specified
   const categoryOrder = [
@@ -178,11 +189,17 @@ const Menu = () => {
 
       <MenuSchema items={menuItems} />
 
-      <div className="min-h-screen bg-background">
+      {/* Floating Food Animations */}
+      <MenuAnimationCanvas 
+        isEnabled={animationsEnabled} 
+        activeFilter={filters.categories[0]}
+      />
+
+      <div className="min-h-screen relative">
         <Navigation />
 
-        <main className="container mx-auto px-4 py-24" id="main-content">
-          {/* Header */}
+        <main className="container mx-auto px-4 py-24 relative z-10" id="main-content">
+          {/* Header with Animation Toggle */}
           <div className="mb-12 text-center">
             <div className="inline-flex items-center gap-3 mb-4">
               <Sparkles className="h-8 w-8 text-flat-yellow animate-wiggle" />
@@ -191,17 +208,25 @@ const Menu = () => {
               </h1>
               <Sparkles className="h-8 w-8 text-flat-coral animate-wiggle" />
             </div>
-            <p className="mx-auto max-w-2xl font-inter text-lg text-muted-foreground mb-2">
+            <p className="mx-auto max-w-2xl font-inter text-lg text-muted-foreground mb-4">
               Discover our carefully curated selection of 145+ dishes
             </p>
-            <p className="text-sm text-muted-foreground font-inter">
-              {sortedItems.length} {sortedItems.length === 1 ? 'dish' : 'dishes'} available
-            </p>
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <p className="text-sm text-muted-foreground font-inter">
+                {sortedItems.length} {sortedItems.length === 1 ? 'dish' : 'dishes'} available
+              </p>
+              <AnimationToggle 
+                enabled={animationsEnabled}
+                onToggle={setAnimationsEnabled}
+              />
+            </div>
           </div>
 
-          {/* Search & Filters */}
+          {/* Search & Filters - Glassmorphism */}
           <div className="mx-auto max-w-4xl mb-12 space-y-4">
-            <MenuSearch value={searchQuery} onChange={setSearchQuery} />
+            <div className="bg-background/60 backdrop-blur-md rounded-2xl p-6 border border-border/50 shadow-lg">
+              <MenuSearch value={searchQuery} onChange={setSearchQuery} />
+            </div>
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <MenuFilters
                 filters={filters}
@@ -209,7 +234,7 @@ const Menu = () => {
                 categoryCounts={categoryCounts}
               />
               <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[200px] bg-background/80 backdrop-blur-sm">
                   <ArrowUpDown className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>

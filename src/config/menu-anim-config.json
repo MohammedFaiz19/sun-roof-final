@@ -1,0 +1,63 @@
+{
+  "particleLimits": {
+    "desktop": 25,
+    "tablet": 10,
+    "mobile": 3
+  },
+  "sprites": {
+    "food": [
+      { "id": "momo", "tags": ["Momos"], "weight": 1.2 },
+      { "id": "pizza", "tags": ["Pizza"], "weight": 1.0 },
+      { "id": "burger", "tags": ["Burger"], "weight": 1.0 },
+      { "id": "soup", "tags": ["Starters → Soups"], "weight": 0.8 },
+      { "id": "mojito", "tags": ["Beverages → Mojitos"], "weight": 0.7 },
+      { "id": "fries", "tags": ["Sharings"], "weight": 0.9 },
+      { "id": "noodles", "tags": ["Main Course Chinese → Noodles"], "weight": 1.1 },
+      { "id": "pasta", "tags": ["Pasta"], "weight": 1.0 }
+    ],
+    "particles": [
+      { "id": "steam", "weight": 0.3, "behavior": "rise" },
+      { "id": "spice", "weight": 0.2, "behavior": "drift" },
+      { "id": "sparkle", "weight": 0.1, "behavior": "twinkle" }
+    ]
+  },
+  "layers": {
+    "background": {
+      "depth": 0.3,
+      "opacity": 0.15,
+      "blur": 8
+    },
+    "midground": {
+      "depth": 0.6,
+      "opacity": 0.25,
+      "blur": 4
+    },
+    "foreground": {
+      "depth": 1.0,
+      "opacity": 0.4,
+      "blur": 0
+    }
+  },
+  "motion": {
+    "driftSpeed": 0.5,
+    "rotationSpeed": 0.3,
+    "scaleRange": [0.8, 1.2],
+    "parallaxStrength": 0.03
+  },
+  "interaction": {
+    "magneticRadius": 100,
+    "magneticStrength": 0.15,
+    "clickPulseScale": 1.3,
+    "hoverGlowIntensity": 1.5
+  },
+  "performance": {
+    "maxFPS": 60,
+    "useGPU": true,
+    "adaptiveDensity": true
+  },
+  "accessibility": {
+    "respectReducedMotion": true,
+    "defaultEnabled": true,
+    "toggleVisible": true
+  }
+}
