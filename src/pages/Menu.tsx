@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ArrowUpDown } from "lucide-react";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import type { MenuItem } from "@/hooks/useMenu";
 import { MenuSearch } from "@/components/menu/MenuSearch";
@@ -10,6 +10,13 @@ import { MenuGrid } from "@/components/menu/MenuGrid";
 import { DishModal } from "@/components/menu/DishModal";
 import { MenuSchema } from "@/components/menu/MenuSchema";
 import { Helmet } from "react-helmet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Menu = () => {
   const { data: menuData = [], isLoading } = useMenuItems();
@@ -36,9 +43,10 @@ const Menu = () => {
     categories: [],
     dietary: [],
     spiceLevel: "all",
-    priceRange: [0, 400],
+    priceRange: [0, 500],
     tags: [],
   });
+  const [sortBy, setSortBy] = useState<"name" | "price-low" | "price-high" | "popularity">("popularity");
 
   const filteredItems = useMemo(() => {
     return menuItems.filter((item) => {
@@ -65,9 +73,35 @@ const Menu = () => {
       const matchesSpice =
         filters.spiceLevel === "all" || item.spiceLevel === filters.spiceLevel;
 
-      return matchesSearch && matchesCategory && matchesDietary && matchesSpice;
+      // Price range filter
+      const matchesPrice =
+        item.price >= filters.priceRange[0] && item.price <= filters.priceRange[1];
+
+      return matchesSearch && matchesCategory && matchesDietary && matchesSpice && matchesPrice;
     });
   }, [menuItems, searchQuery, filters]);
+
+  // Sort filtered items
+  const sortedItems = useMemo(() => {
+    const items = [...filteredItems];
+    
+    switch (sortBy) {
+      case "name":
+        return items.sort((a, b) => a.name.localeCompare(b.name));
+      case "price-low":
+        return items.sort((a, b) => a.price - b.price);
+      case "price-high":
+        return items.sort((a, b) => b.price - a.price);
+      case "popularity":
+        return items.sort((a, b) => {
+          const aPopular = a.tags?.includes("popular") ? 1 : 0;
+          const bPopular = b.tags?.includes("popular") ? 1 : 0;
+          return bPopular - aPopular;
+        });
+      default:
+        return items;
+    }
+  }, [filteredItems, sortBy]);
 
   const categoryCounts = useMemo(() => {
     return menuItems.reduce((acc, item) => {
@@ -77,14 +111,14 @@ const Menu = () => {
   }, [menuItems]);
 
   const groupedItems = useMemo(() => {
-    return filteredItems.reduce((acc, item) => {
+    return sortedItems.reduce((acc, item) => {
       if (!acc[item.category]) {
         acc[item.category] = [];
       }
       acc[item.category].push(item);
       return acc;
     }, {} as Record<string, MenuItem[]>);
-  }, [filteredItems]);
+  }, [sortedItems]);
 
   if (isLoading) {
     return (
@@ -135,19 +169,31 @@ const Menu = () => {
               Discover our carefully curated selection of 145+ dishes
             </p>
             <p className="text-sm text-muted-foreground font-inter">
-              {filteredItems.length} {filteredItems.length === 1 ? 'dish' : 'dishes'} available
+              {sortedItems.length} {sortedItems.length === 1 ? 'dish' : 'dishes'} available
             </p>
           </div>
 
           {/* Search & Filters */}
           <div className="mx-auto max-w-4xl mb-12 space-y-4">
             <MenuSearch value={searchQuery} onChange={setSearchQuery} />
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-3 flex-wrap">
               <MenuFilters
                 filters={filters}
                 onFiltersChange={setFilters}
                 categoryCounts={categoryCounts}
               />
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className="w-[200px]">
+                  <ArrowUpDown className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="popularity">Most Popular</SelectItem>
+                  <SelectItem value="name">Name (A-Z)</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

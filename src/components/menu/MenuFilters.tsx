@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import {
   Sheet,
   SheetContent,
@@ -81,7 +82,7 @@ export const MenuFilters = ({ filters, onFiltersChange, categoryCounts }: MenuFi
       categories: [],
       dietary: [],
       spiceLevel: "all",
-      priceRange: [0, 400],
+      priceRange: [0, 500],
       tags: [],
     });
   };
@@ -89,7 +90,8 @@ export const MenuFilters = ({ filters, onFiltersChange, categoryCounts }: MenuFi
   const activeFilterCount = 
     filters.categories.length + 
     filters.dietary.length + 
-    (filters.spiceLevel !== "all" ? 1 : 0);
+    (filters.spiceLevel !== "all" ? 1 : 0) +
+    (filters.priceRange[0] > 0 || filters.priceRange[1] < 500 ? 1 : 0);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -208,6 +210,31 @@ export const MenuFilters = ({ filters, onFiltersChange, categoryCounts }: MenuFi
                     ))}
                   </div>
                 </RadioGroup>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Price Range */}
+            <AccordionItem value="price">
+              <AccordionTrigger className="font-inter font-semibold">
+                Price Range
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4">
+                  <Slider
+                    min={0}
+                    max={500}
+                    step={10}
+                    value={filters.priceRange}
+                    onValueChange={(value) =>
+                      onFiltersChange({ ...filters, priceRange: value as [number, number] })
+                    }
+                    className="w-full"
+                  />
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>₹{filters.priceRange[0]}</span>
+                    <span>₹{filters.priceRange[1]}</span>
+                  </div>
+                </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
