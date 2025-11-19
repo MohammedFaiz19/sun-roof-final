@@ -12,6 +12,7 @@ interface MenuItemCardProps {
 
 export const MenuItemCard = ({ name, price, vegNonVeg, description, imageUrl, index }: MenuItemCardProps) => {
   const isVeg = vegNonVeg === 'veg';
+  const isBoth = vegNonVeg === 'both';
   
   return (
     <motion.div
@@ -31,16 +32,27 @@ export const MenuItemCard = ({ name, price, vegNonVeg, description, imageUrl, in
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             
             {/* Veg/Non-Veg Badge */}
-            <div className="absolute top-3 left-3">
-              <div className={`w-8 h-8 rounded border-2 flex items-center justify-center backdrop-blur-sm ${
-                isVeg 
-                  ? 'border-green-500 bg-green-500/20' 
-                  : 'border-red-500 bg-red-500/20'
-              }`}>
-                <div className={`w-4 h-4 rounded-full ${
-                  isVeg ? 'bg-green-500' : 'bg-red-500'
-                }`} />
-              </div>
+            <div className="absolute top-3 left-3 flex gap-2">
+              {isBoth ? (
+                <>
+                  <div className="w-8 h-8 rounded border-2 flex items-center justify-center backdrop-blur-sm border-green-500 bg-green-500/20">
+                    <div className="w-4 h-4 rounded-full bg-green-500" />
+                  </div>
+                  <div className="w-8 h-8 rounded border-2 flex items-center justify-center backdrop-blur-sm border-red-500 bg-red-500/20">
+                    <div className="w-4 h-4 rounded-full bg-red-500" />
+                  </div>
+                </>
+              ) : (
+                <div className={`w-8 h-8 rounded border-2 flex items-center justify-center backdrop-blur-sm ${
+                  isVeg 
+                    ? 'border-green-500 bg-green-500/20' 
+                    : 'border-red-500 bg-red-500/20'
+                }`}>
+                  <div className={`w-4 h-4 rounded-full ${
+                    isVeg ? 'bg-green-500' : 'bg-red-500'
+                  }`} />
+                </div>
+              )}
             </div>
           </div>
         )}
