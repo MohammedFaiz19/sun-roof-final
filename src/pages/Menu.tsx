@@ -1,284 +1,200 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Helmet } from "react-helmet";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Sparkles, ArrowUpDown } from "lucide-react";
-import { useMenuItems } from "@/hooks/useMenuItems";
-import type { MenuItem } from "@/hooks/useMenu";
-import { MenuSearch } from "@/components/menu/MenuSearch";
-import { MenuFilters, MenuFiltersState } from "@/components/menu/MenuFilters";
-import { MenuGrid } from "@/components/menu/MenuGrid";
-import { DishModal } from "@/components/menu/DishModal";
-import { MenuSchema } from "@/components/menu/MenuSchema";
 import { MenuAnimationCanvas } from "@/components/menu/MenuAnimationCanvas";
 import { AnimationToggle } from "@/components/menu/AnimationToggle";
-import { Helmet } from "react-helmet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ChefHat, Soup, Leaf, Pizza, Coffee, IceCream, Salad } from "lucide-react";
+
+interface SubCategory {
+  name: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  icon: any;
+  color: string;
+  subcategories: SubCategory[];
+}
+
+const menuStructure: Category[] = [
+  {
+    id: "starters",
+    name: "STARTERS",
+    icon: ChefHat,
+    color: "from-orange-500 to-red-500",
+    subcategories: [
+      { name: "SOUP" },
+      { name: "CHINESE VEG STARTER" },
+      { name: "CHINESE NON-VEG STARTER" },
+      { name: "MOMOS" },
+      { name: "SHARINGS" }
+    ]
+  },
+  {
+    id: "main-course",
+    name: "MAIN COURSE",
+    icon: Pizza,
+    color: "from-amber-500 to-orange-500",
+    subcategories: [
+      { name: "MAIN COURSE CHINESE" },
+      { name: "RICE" },
+      { name: "NOODLES" },
+      { name: "SIDE DISH CHINESE" },
+      { name: "PASTA" },
+      { name: "PIZZA" },
+      { name: "BURGER" },
+      { name: "SANDWICHES" }
+    ]
+  },
+  {
+    id: "healthy-light",
+    name: "HEALTHY & LIGHT",
+    icon: Salad,
+    color: "from-green-500 to-emerald-500",
+    subcategories: [
+      { name: "SALAD" },
+      { name: "JUICES" }
+    ]
+  },
+  {
+    id: "desserts",
+    name: "DESSERTS",
+    icon: IceCream,
+    color: "from-pink-500 to-rose-500",
+    subcategories: []
+  },
+  {
+    id: "beverages",
+    name: "BEVERAGES",
+    icon: Coffee,
+    color: "from-blue-500 to-cyan-500",
+    subcategories: [
+      { name: "MOJITOS" },
+      { name: "MILKSHAKES" }
+    ]
+  }
+];
 
 const Menu = () => {
-  const { data: menuData = [], isLoading } = useMenuItems();
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
-
-  // Check for prefers-reduced-motion
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      setAnimationsEnabled(false);
-    }
-  }, []);
-  
-  // Define exact category order as specified
-  const categoryOrder = [
-    "Starters → Soups",
-    "Chinese Veg Starter",
-    "Chinese Non-Veg Starter",
-    "Momos",
-    "Sharings",
-    "Main Course Chinese → Rice",
-    "Main Course Chinese → Noodles",
-    "Pasta",
-    "Pizza",
-    "Burger",
-    "Sandwiches",
-    "Healthy & Light → Salads",
-    "Healthy & Light → Juices",
-    "Desserts",
-    "Beverages → Mojitos",
-    "Beverages → Milkshakes",
-    "Beverages",
-  ];
-  
-  // Transform database items to match MenuItem interface
-  const menuItems: MenuItem[] = menuData.map(item => ({
-    id: item.id,
-    name: item.name,
-    category: item.category, // Keep full category name with subcategory
-    subCategory: item.category.includes('→') ? item.category.split('→')[1].trim() : '',
-    price: parseInt(item.price),
-    veg: item.veg_nonveg === 'veg',
-    description: item.description,
-    image: item.generated_image_url || item.image_url || '',
-    alt: item.name,
-    spiceLevel: 'mild' as const,
-    allergens: [],
-    tags: [],
-    available: item.is_active,
-  }));
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [filters, setFilters] = useState<MenuFiltersState>({
-    categories: [],
-    dietary: [],
-    spiceLevel: "all",
-    priceRange: [0, 500],
-    tags: [],
-  });
-  const [sortBy, setSortBy] = useState<"name" | "price-low" | "price-high" | "popularity">("popularity");
-
-  const filteredItems = useMemo(() => {
-    return menuItems.filter((item) => {
-      // Search filter
-      const matchesSearch =
-        searchQuery === "" ||
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.subCategory.toLowerCase().includes(searchQuery.toLowerCase());
-
-      // Category filter
-      const matchesCategory =
-        filters.categories.length === 0 ||
-        filters.categories.includes(item.category);
-
-      // Dietary filter
-      const matchesDietary =
-        filters.dietary.length === 0 ||
-        (filters.dietary.includes("veg") && item.veg) ||
-        (filters.dietary.includes("non-veg") && !item.veg);
-
-      // Spice level filter
-      const matchesSpice =
-        filters.spiceLevel === "all" || item.spiceLevel === filters.spiceLevel;
-
-      // Price range filter
-      const matchesPrice =
-        item.price >= filters.priceRange[0] && item.price <= filters.priceRange[1];
-
-      return matchesSearch && matchesCategory && matchesDietary && matchesSpice && matchesPrice;
-    });
-  }, [menuItems, searchQuery, filters]);
-
-  // Sort filtered items
-  const sortedItems = useMemo(() => {
-    const items = [...filteredItems];
-    
-    switch (sortBy) {
-      case "name":
-        return items.sort((a, b) => a.name.localeCompare(b.name));
-      case "price-low":
-        return items.sort((a, b) => a.price - b.price);
-      case "price-high":
-        return items.sort((a, b) => b.price - a.price);
-      case "popularity":
-        // Keep original database order (already sorted by display_order from database)
-        return items;
-      default:
-        return items;
-    }
-  }, [filteredItems, sortBy]);
-
-  const categoryCounts = useMemo(() => {
-    return menuItems.reduce((acc, item) => {
-      acc[item.category] = (acc[item.category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-  }, [menuItems]);
-
-  const groupedItems = useMemo(() => {
-    const grouped = sortedItems.reduce((acc, item) => {
-      if (!acc[item.category]) {
-        acc[item.category] = [];
-      }
-      acc[item.category].push(item);
-      return acc;
-    }, {} as Record<string, MenuItem[]>);
-    
-    // Return categories in exact specified order
-    return categoryOrder.reduce((acc, category) => {
-      if (grouped[category]) {
-        acc[category] = grouped[category];
-      }
-      return acc;
-    }, {} as Record<string, MenuItem[]>);
-  }, [sortedItems, categoryOrder]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <main className="container mx-auto px-4 py-24">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(12)].map((_, i) => (
-              <div key={i} className="aspect-[4/5] bg-muted rounded-2xl animate-pulse" />
-            ))}
-          </div>
-        </main>
-      </div>
-    );
-  }
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   return (
     <>
       <Helmet>
-        <title>Sunroof Café — Full Menu | 145+ Dishes | Starters, Mains, Desserts & Drinks</title>
-        <meta
-          name="description"
-          content="Explore Sunroof Café's complete menu with 145+ dishes including Indo-Chinese starters, pasta, pizza, burgers, desserts, and beverages. Order online or visit us today!"
-        />
-        <meta property="og:title" content="Sunroof Café — Full Menu" />
-        <meta
-          property="og:description"
-          content="Browse our extensive menu featuring soups, starters, momos, rice, noodles, pasta, pizza, burgers, salads, desserts, and drinks."
-        />
+        <title>Our Menu - Sunroof Cafe</title>
+        <meta name="description" content="Explore our delicious menu categories at Sunroof Cafe" />
       </Helmet>
 
-      <MenuSchema items={menuItems} />
-
-      {/* Floating Food Animations */}
-      <MenuAnimationCanvas 
-        isEnabled={animationsEnabled} 
-        activeFilter={filters.categories[0]}
-      />
-
-      <div className="min-h-screen relative">
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        {animationsEnabled && <MenuAnimationCanvas isEnabled={animationsEnabled} />}
+        
         <Navigation />
-
-        <main className="container mx-auto px-4 py-24 relative z-10" id="main-content">
-          {/* Header with Animation Toggle */}
-          <div className="mb-12 text-center">
-            <div className="inline-flex items-center gap-3 mb-4">
-              <Sparkles className="h-8 w-8 text-flat-yellow animate-wiggle" />
-              <h1 className="font-playfair text-5xl md:text-6xl font-bold gradient-text">
-                Our Menu
-              </h1>
-              <Sparkles className="h-8 w-8 text-flat-coral animate-wiggle" />
-            </div>
-            <p className="mx-auto max-w-2xl font-inter text-lg text-muted-foreground mb-4">
-              Discover our carefully curated selection of 145+ dishes
-            </p>
-            <div className="flex items-center justify-center gap-4 mb-2">
-              <p className="text-sm text-muted-foreground font-inter">
-                {sortedItems.length} {sortedItems.length === 1 ? 'dish' : 'dishes'} available
-              </p>
-              <AnimationToggle 
-                enabled={animationsEnabled}
-                onToggle={setAnimationsEnabled}
-              />
-            </div>
+        
+        <main className="container mx-auto px-4 py-24 relative z-10">
+          {/* Header */}
+          <div className="text-center mb-16 space-y-4">
+            <motion.h1 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-5xl md:text-6xl font-playfair font-bold text-primary"
+            >
+              Our Menu
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-xl text-muted-foreground"
+            >
+              Explore our delicious categories
+            </motion.p>
+            <AnimationToggle 
+              enabled={animationsEnabled}
+              onToggle={() => setAnimationsEnabled(!animationsEnabled)}
+            />
           </div>
 
-          {/* Search & Filters - Glassmorphism */}
-          <div className="mx-auto max-w-4xl mb-12 space-y-4">
-            <div className="bg-background/60 backdrop-blur-md rounded-2xl p-6 border border-border/50 shadow-lg">
-              <MenuSearch value={searchQuery} onChange={setSearchQuery} />
-            </div>
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <MenuFilters
-                filters={filters}
-                onFiltersChange={setFilters}
-                categoryCounts={categoryCounts}
-              />
-              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                <SelectTrigger className="w-[200px] bg-background/80 backdrop-blur-sm">
-                  <ArrowUpDown className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="popularity">Most Popular</SelectItem>
-                  <SelectItem value="name">Name (A-Z)</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          {/* Categories Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            {menuStructure.map((category, index) => (
+              <motion.div
+                key={category.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.05, y: -8 }}
+                onClick={() => setSelectedCategory(category.id)}
+                className="cursor-pointer group"
+              >
+                <div className="relative h-full bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden border border-border/50 shadow-lg hover:shadow-2xl transition-all duration-300">
+                  {/* Gradient overlay */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-10 group-hover:opacity-20 transition-opacity duration-300`} />
+                  
+                  {/* Content */}
+                  <div className="relative p-8 space-y-6">
+                    {/* Icon */}
+                    <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${category.color} flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300`}>
+                      <category.icon className="w-8 h-8 text-white" />
+                    </div>
 
-          {/* Menu Grid by Category */}
-          {Object.keys(groupedItems).length > 0 ? (
-            <div className="space-y-16">
-              {Object.entries(groupedItems).map(([category, items]) => (
-                <section key={category} id={category.toLowerCase().replace(/\s+/g, '-')}>
-                  <div className="mb-8">
-                    <h2 className="font-playfair text-3xl md:text-4xl font-bold text-primary mb-2">
-                      {category}
+                    {/* Category Name */}
+                    <h2 className="text-2xl font-playfair font-bold text-foreground group-hover:text-primary transition-colors">
+                      {category.name}
                     </h2>
-                    <div className="h-1 w-24 bg-gradient-foodie rounded-full" />
-                    <p className="text-sm text-muted-foreground font-inter mt-2">
-                      {items.length} {items.length === 1 ? 'item' : 'items'}
-                    </p>
+
+                    {/* Subcategories */}
+                    {category.subcategories.length > 0 && (
+                      <div className="space-y-2">
+                        {category.subcategories.map((sub, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 + idx * 0.05 }}
+                            className="flex items-center space-x-2 text-sm text-muted-foreground group-hover:text-foreground transition-colors"
+                          >
+                            <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${category.color}`} />
+                            <span>{sub.name}</span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Hover indicator */}
+                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className={`text-sm font-semibold bg-gradient-to-r ${category.color} bg-clip-text text-transparent`}>
+                        Click to explore →
+                      </div>
+                    </div>
                   </div>
-                  <MenuGrid items={items} onItemClick={setSelectedItem} />
-                </section>
-              ))}
-            </div>
-          ) : (
-            <MenuGrid items={[]} onItemClick={setSelectedItem} />
-          )}
+
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-shine" />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Coming Soon Message */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="text-center mt-16 p-8 bg-card/60 backdrop-blur-md rounded-2xl border border-border/50 max-w-2xl mx-auto"
+          >
+            <p className="text-lg text-muted-foreground">
+              Menu items coming soon! Each category will be filled with our delicious offerings.
+            </p>
+          </motion.div>
         </main>
 
         <Footer />
-
-        {/* Dish Detail Modal */}
-        <DishModal
-          item={selectedItem}
-          isOpen={selectedItem !== null}
-          onClose={() => setSelectedItem(null)}
-        />
       </div>
     </>
   );
