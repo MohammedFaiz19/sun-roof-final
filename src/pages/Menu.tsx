@@ -355,7 +355,7 @@ const Menu = () => {
                         price={item.price}
                         vegNonVeg={item.veg_nonveg}
                         description={item.description}
-                        imageUrl={item.generated_image_url || item.image_url || undefined}
+                        imageUrl={item.image_url || item.generated_image_url || undefined}
                         index={index}
                       />
                     ))}

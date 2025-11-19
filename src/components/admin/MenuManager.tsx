@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, RefreshCw, Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { Upload, RefreshCw, Plus, Trash2, Image as ImageIcon, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
@@ -52,6 +52,96 @@ const MenuManager = () => {
       
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Upload custom image
+  const uploadCustomImage = useMutation({
+    mutationFn: async ({ itemId, file }: { itemId: string; file: File }) => {
+      const item = menuItems?.find(i => i.id === itemId);
+      if (!item) throw new Error('Item not found');
+
+      // Create a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${itemId}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('menu-images')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('menu-images')
+        .getPublicUrl(filePath);
+
+      // Update menu item with custom image URL
+      const { error: updateError } = await supabase
+        .from('menu_items')
+        .update({ image_url: publicUrl })
+        .eq('id', itemId);
+
+      if (updateError) throw updateError;
+
+      return publicUrl;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] });
+      toast({
+        title: "Image Uploaded!",
+        description: "Custom image has been successfully uploaded.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete custom image
+  const deleteCustomImage = useMutation({
+    mutationFn: async (itemId: string) => {
+      const item = menuItems?.find(i => i.id === itemId);
+      if (!item?.image_url) throw new Error('No custom image to delete');
+
+      // Extract file path from URL
+      const urlParts = item.image_url.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+
+      // Delete from storage
+      const { error: deleteError } = await supabase.storage
+        .from('menu-images')
+        .remove([fileName]);
+
+      if (deleteError) throw deleteError;
+
+      // Remove URL from database
+      const { error: updateError } = await supabase
+        .from('menu_items')
+        .update({ image_url: null })
+        .eq('id', itemId);
+
+      if (updateError) throw updateError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] });
+      toast({
+        title: "Image Deleted!",
+        description: "Custom image has been removed.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete image.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -326,13 +416,20 @@ const MenuManager = () => {
                     className="flex items-center gap-4 p-4 border-2 border-border rounded-lg"
                   >
                     {/* Image Preview */}
-                    <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {item.generated_image_url ? (
-                        <img
-                          src={item.generated_image_url}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
+                    <div className="relative w-24 h-24 bg-muted rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {item.image_url || item.generated_image_url ? (
+                        <>
+                          <img
+                            src={item.image_url || item.generated_image_url}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                          />
+                          {item.image_url && (
+                            <Badge className="absolute top-1 left-1 text-xs bg-primary/90">
+                              Custom
+                            </Badge>
+                          )}
+                        </>
                       ) : (
                         <ImageIcon className="h-8 w-8 text-muted-foreground" />
                       )}
@@ -349,19 +446,61 @@ const MenuManager = () => {
                       </div>
                       <p className="text-sm text-muted-foreground">{item.description}</p>
                       <p className="text-xs text-muted-foreground mt-1">
+                        Image: {item.image_url ? 'Custom Upload' : item.generated_image_url ? 'AI Generated' : 'None'} • 
                         Status: {item.image_generation_status || 'pending'}
                       </p>
                     </div>
 
                     {/* Actions */}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => regenerateImage.mutate(item.id)}
-                      disabled={regenerateImage.isPending}
-                    >
-                      <RefreshCw className={`h-4 w-4 ${regenerateImage.isPending ? 'animate-spin' : ''}`} />
-                    </Button>
+                    <div className="flex gap-2">
+                      {/* Upload Custom Image */}
+                      <label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              uploadCustomImage.mutate({ itemId: item.id, file });
+                            }
+                          }}
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          type="button"
+                          disabled={uploadCustomImage.isPending}
+                          asChild
+                        >
+                          <span className="cursor-pointer">
+                            <Upload className="h-4 w-4" />
+                          </span>
+                        </Button>
+                      </label>
+
+                      {/* Delete Custom Image */}
+                      {item.image_url && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => deleteCustomImage.mutate(item.id)}
+                          disabled={deleteCustomImage.isPending}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+
+                      {/* Regenerate AI Image */}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => regenerateImage.mutate(item.id)}
+                        disabled={regenerateImage.isPending}
+                      >
+                        <RefreshCw className={`h-4 w-4 ${regenerateImage.isPending ? 'animate-spin' : ''}`} />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
