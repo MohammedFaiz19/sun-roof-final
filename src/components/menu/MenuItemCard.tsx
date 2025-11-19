@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
+import { ImageWithFallback } from "@/components/ui/image-with-fallback";
+import { getImagePath } from "@/lib/imageUtils";
 interface MenuItemCardProps {
   name: string;
   price: string;
@@ -30,7 +32,11 @@ export const MenuItemCard = ({
       <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-border/50 bg-card/80 backdrop-blur-md">
         {/* Image */}
         {imageUrl && <div className="relative h-56 overflow-hidden">
-            <img src={imageUrl} alt={name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            <ImageWithFallback 
+              src={getImagePath(imageUrl)} 
+              alt={name} 
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             
             {/* Veg/Non-Veg Badge */}
