@@ -52,8 +52,7 @@ const menuHierarchy: MainCategory[] = [
     icon: Pizza,
     color: "from-amber-500 via-orange-500 to-red-500",
     subcategories: [
-      { id: "rice", name: "RICE", dbName: "MAIN COURSE CHINESE — RICE" },
-      { id: "noodles", name: "NOODLES", dbName: "MAIN COURSE CHINESE — NOODLES" },
+      { id: "main-dish-chinese", name: "MAIN DISH CHINESE", dbName: "MAIN DISH CHINESE" },
       { id: "side-dish-chinese", name: "SIDE DISH CHINESE", dbName: "SIDE DISH — CHINESE" },
       { id: "pasta", name: "PASTA", dbName: "PASTA" },
       { id: "pizza", name: "PIZZA", dbName: "PIZZA" },
