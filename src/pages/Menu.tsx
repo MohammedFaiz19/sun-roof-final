@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { MenuAnimationCanvas } from "@/components/menu/MenuAnimationCanvas";
 import { AnimationToggle } from "@/components/menu/AnimationToggle";
-import { ChefHat, Soup, Leaf, Pizza, Coffee, IceCream, Salad } from "lucide-react";
+import { ChefHat, Pizza, Coffee, IceCream, Salad, ArrowLeft } from "lucide-react";
+import { useMenuItems } from "@/hooks/useMenuItems";
+import { MenuItemCard } from "@/components/menu/MenuItemCard";
+import { Button } from "@/components/ui/button";
 interface SubCategory {
   name: string;
 }
@@ -17,21 +20,35 @@ interface Category {
   subcategories: SubCategory[];
 }
 const menuStructure: Category[] = [{
-  id: "starters",
-  name: "STARTERS",
+  id: "soup",
+  name: "SOUPS",
   icon: ChefHat,
   color: "from-orange-500 to-red-500",
-  subcategories: [{
-    name: "SOUP"
-  }, {
-    name: "CHINESE VEG STARTER"
-  }, {
-    name: "CHINESE NON-VEG STARTER"
-  }, {
-    name: "MOMOS"
-  }, {
-    name: "SHARINGS"
-  }]
+  subcategories: []
+}, {
+  id: "chinese-veg-starter",
+  name: "CHINESE VEG STARTERS",
+  icon: ChefHat,
+  color: "from-red-500 to-pink-500",
+  subcategories: []
+}, {
+  id: "chinese-nonveg-starter",
+  name: "CHINESE NON-VEG STARTERS",
+  icon: ChefHat,
+  color: "from-purple-500 to-red-500",
+  subcategories: []
+}, {
+  id: "momos",
+  name: "MOMOS",
+  icon: ChefHat,
+  color: "from-yellow-500 to-orange-500",
+  subcategories: []
+}, {
+  id: "sharings",
+  name: "SHARINGS",
+  icon: Pizza,
+  color: "from-amber-500 to-red-500",
+  subcategories: []
 }, {
   id: "main-course",
   name: "MAIN COURSE",
@@ -84,6 +101,16 @@ const menuStructure: Category[] = [{
 const Menu = () => {
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { data: menuItems, isLoading } = useMenuItems();
+
+  // Filter items based on selected category
+  const filteredItems = selectedCategory
+    ? menuItems?.filter(item => {
+        const normalizedCategory = item.category.toUpperCase().replace(/\s+/g, ' ');
+        const normalizedSelected = selectedCategory.toUpperCase().replace(/-/g, ' ');
+        return normalizedCategory === normalizedSelected;
+      })
+    : [];
   return <>
       <Helmet>
         <title>Our Menu - Sunroof Cafe</title>
@@ -121,80 +148,153 @@ const Menu = () => {
             
           </div>
 
-          {/* Categories Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            {menuStructure.map((category, index) => <motion.div key={category.id} initial={{
-            opacity: 0,
-            scale: 0.9
-          }} animate={{
-            opacity: 1,
-            scale: 1
-          }} transition={{
-            delay: index * 0.1
-          }} whileHover={{
-            scale: 1.05,
-            y: -8
-          }} onClick={() => setSelectedCategory(category.id)} className="cursor-pointer group">
-                <div className="relative h-full bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden border border-border/50 shadow-lg hover:shadow-2xl transition-all duration-300">
-                  {/* Gradient overlay */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-10 group-hover:opacity-20 transition-opacity duration-300`} />
-                  
-                  {/* Content */}
-                  <div className="relative p-8 space-y-6">
-                    {/* Icon */}
-                    <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${category.color} flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300`}>
-                      <category.icon className="w-8 h-8 text-white" />
-                    </div>
+          <AnimatePresence mode="wait">
+            {!selectedCategory ? (
+              /* Categories Grid */
+              <motion.div
+                key="categories"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto"
+              >
+                {menuStructure.map((category, index) => (
+                  <motion.div
+                    key={category.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.05, y: -8 }}
+                    onClick={() => {
+                      // Map display ID to database category format
+                      const categoryMap: Record<string, string> = {
+                        'soup': 'SOUP',
+                        'chinese-veg-starter': 'CHINESE VEG STARTER',
+                        'chinese-nonveg-starter': 'CHINESE NON-VEG STARTER',
+                        'momos': 'MOMOS',
+                        'sharings': 'SHARINGS',
+                        'main-course': 'MAIN COURSE',
+                        'healthy-light': 'HEALTHY & LIGHT',
+                        'desserts': 'DESSERTS',
+                        'beverages': 'BEVERAGES'
+                      };
+                      setSelectedCategory(categoryMap[category.id] || category.name);
+                    }}
+                    className="cursor-pointer group"
+                  >
+                    <div className="relative h-full bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden border border-border/50 shadow-lg hover:shadow-2xl transition-all duration-300">
+                      {/* Gradient overlay */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-10 group-hover:opacity-20 transition-opacity duration-300`} />
+                      
+                      {/* Content */}
+                      <div className="relative p-8 space-y-6">
+                        {/* Icon */}
+                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${category.color} flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300`}>
+                          <category.icon className="w-8 h-8 text-white" />
+                        </div>
 
-                    {/* Category Name */}
-                    <h2 className="text-2xl font-playfair font-bold text-foreground group-hover:text-primary transition-colors">
-                      {category.name}
-                    </h2>
+                        {/* Category Name */}
+                        <h2 className="text-2xl font-playfair font-bold text-foreground group-hover:text-primary transition-colors">
+                          {category.name}
+                        </h2>
 
-                    {/* Subcategories */}
-                    {category.subcategories.length > 0 && <div className="space-y-2">
-                        {category.subcategories.map((sub, idx) => <motion.div key={idx} initial={{
-                    opacity: 0,
-                    x: -10
-                  }} animate={{
-                    opacity: 1,
-                    x: 0
-                  }} transition={{
-                    delay: index * 0.1 + idx * 0.05
-                  }} className="flex items-center space-x-2 text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                            <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${category.color}`} />
-                            <span>{sub.name}</span>
-                          </motion.div>)}
-                      </div>}
+                        {/* Subcategories */}
+                        {category.subcategories.length > 0 && (
+                          <div className="space-y-2">
+                            {category.subcategories.map((sub, idx) => (
+                              <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.1 + idx * 0.05 }}
+                                className="flex items-center space-x-2 text-sm text-muted-foreground group-hover:text-foreground transition-colors"
+                              >
+                                <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${category.color}`} />
+                                <span>{sub.name}</span>
+                              </motion.div>
+                            ))}
+                          </div>
+                        )}
 
-                    {/* Hover indicator */}
-                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className={`text-sm font-semibold bg-gradient-to-r ${category.color} bg-clip-text text-transparent`}>
-                        Click to explore →
+                        {/* Hover indicator */}
+                        <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className={`text-sm font-semibold bg-gradient-to-r ${category.color} bg-clip-text text-transparent`}>
+                            Click to explore →
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Shine effect */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-shine" />
                       </div>
                     </div>
-                  </div>
-
-                  {/* Shine effect */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-shine" />
-                  </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : (
+              /* Menu Items View */
+              <motion.div
+                key="items"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                {/* Back Button */}
+                <div>
+                  <Button
+                    onClick={() => setSelectedCategory(null)}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Categories
+                  </Button>
                 </div>
-              </motion.div>)}
-          </div>
 
-          {/* Coming Soon Message */}
-          <motion.div initial={{
-          opacity: 0
-        }} animate={{
-          opacity: 1
-        }} transition={{
-          delay: 0.8
-        }} className="text-center mt-16 p-8 bg-card/60 backdrop-blur-md rounded-2xl border border-border/50 max-w-2xl mx-auto">
-            <p className="text-lg text-muted-foreground">
-              Menu items coming soon! Each category will be filled with our delicious offerings.
-            </p>
-          </motion.div>
+                {/* Category Title */}
+                <div className="text-center space-y-2">
+                  <h2 className="text-4xl md:text-5xl font-playfair font-bold text-primary">
+                    {selectedCategory.replace(/-/g, ' ')}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Explore our delicious {selectedCategory.toLowerCase()} offerings
+                  </p>
+                </div>
+
+                {/* Menu Items Grid */}
+                {isLoading ? (
+                  <div className="text-center py-20">
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto" />
+                    <p className="mt-4 text-muted-foreground">Loading menu items...</p>
+                  </div>
+                ) : filteredItems && filteredItems.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+                    {filteredItems.map((item, index) => (
+                      <MenuItemCard
+                        key={item.id}
+                        name={item.name}
+                        price={item.price}
+                        vegNonVeg={item.veg_nonveg}
+                        description={item.description}
+                        imageUrl={item.image_url || item.generated_image_url || undefined}
+                        index={index}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20 bg-card/60 backdrop-blur-md rounded-2xl border border-border/50 max-w-2xl mx-auto">
+                    <div className="text-6xl mb-4">🍽️</div>
+                    <h3 className="text-2xl font-bold mb-2">Coming Soon!</h3>
+                    <p className="text-muted-foreground">
+                      We're working on adding delicious items to this category.
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </main>
 
         <Footer />
