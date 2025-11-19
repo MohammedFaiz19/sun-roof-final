@@ -9,6 +9,11 @@ import { ChefHat, Pizza, Coffee, IceCream, Salad, ArrowLeft } from "lucide-react
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { MenuItemCard } from "@/components/menu/MenuItemCard";
 import { Button } from "@/components/ui/button";
+import startersCover from "@/assets/menu-covers/starters-cover.jpg";
+import mainCourseCover from "@/assets/menu-covers/main-course-cover.jpg";
+import healthyLightCover from "@/assets/menu-covers/healthy-light-cover.jpg";
+import dessertsCover from "@/assets/menu-covers/desserts-cover.jpg";
+import beveragesCover from "@/assets/menu-covers/beverages-cover.jpg";
 interface SubCategory {
   id: string;
   name: string;
@@ -19,6 +24,7 @@ interface MainCategory {
   name: string;
   icon: any;
   color: string;
+  imageUrl: string;
   subcategories: SubCategory[];
 }
 
@@ -28,6 +34,7 @@ const menuHierarchy: MainCategory[] = [{
   name: "STARTERS",
   icon: ChefHat,
   color: "from-orange-500 via-red-500 to-pink-500",
+  imageUrl: startersCover,
   subcategories: [{
     id: "soup",
     name: "SOUP",
@@ -54,6 +61,7 @@ const menuHierarchy: MainCategory[] = [{
   name: "MAIN COURSE",
   icon: Pizza,
   color: "from-amber-500 via-orange-500 to-red-500",
+  imageUrl: mainCourseCover,
   subcategories: [{
     id: "main-dish-chinese",
     name: "MAIN COURSE CHINESE",
@@ -84,6 +92,7 @@ const menuHierarchy: MainCategory[] = [{
   name: "HEALTHY & LIGHT",
   icon: Salad,
   color: "from-green-500 via-emerald-500 to-teal-500",
+  imageUrl: healthyLightCover,
   subcategories: [{
     id: "salad",
     name: "SALAD",
@@ -98,6 +107,7 @@ const menuHierarchy: MainCategory[] = [{
   name: "DESSERTS",
   icon: IceCream,
   color: "from-pink-500 via-rose-500 to-red-500",
+  imageUrl: dessertsCover,
   subcategories: [{
     id: "desserts",
     name: "DESSERTS",
@@ -108,6 +118,7 @@ const menuHierarchy: MainCategory[] = [{
   name: "BEVERAGES",
   icon: Coffee,
   color: "from-blue-500 via-cyan-500 to-teal-500",
+  imageUrl: beveragesCover,
   subcategories: [{
     id: "mojitos",
     name: "MOJITOS",
@@ -217,14 +228,19 @@ const Menu = () => {
               }} transition={{
                 delay: index * 0.1
               }} onClick={() => handleMainCategoryClick(category.id)} className="group cursor-pointer">
-                      <div className={`relative h-64 rounded-3xl overflow-hidden bg-gradient-to-br ${category.color} p-8 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105`}>
-                        {/* Animated background pattern */}
-                        <div className="absolute inset-0 opacity-20">
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.3),transparent)]" />
-                        </div>
+                      <div className="relative h-64 rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105">
+                        {/* Background Image */}
+                        <img 
+                          src={category.imageUrl} 
+                          alt={category.name}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        
+                        {/* Dark overlay for text readability */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
 
                         {/* Content */}
-                        <div className="relative h-full flex flex-col items-center justify-center text-white">
+                        <div className="relative h-full flex flex-col items-center justify-center text-white p-8">
                           <motion.div whileHover={{
                       scale: 1.2,
                       rotate: 5
@@ -262,10 +278,6 @@ const Menu = () => {
                             </motion.span>
                           </motion.div>
                         </div>
-
-                        {/* Decorative elements */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl" />
-                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
                       </div>
                     </motion.div>;
             })}
