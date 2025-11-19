@@ -14,10 +14,16 @@ import mainCourseCover from "@/assets/menu-covers/main-course-cover.jpg";
 import healthyLightCover from "@/assets/menu-covers/healthy-light-cover.jpg";
 import dessertsCover from "@/assets/menu-covers/desserts-cover.jpg";
 import beveragesCover from "@/assets/menu-covers/beverages-cover.jpg";
+import soupCover from "@/assets/menu-covers/soup-cover.jpg";
+import chineseVegStarterCover from "@/assets/menu-covers/chinese-veg-starter-cover.jpg";
+import chineseNonvegStarterCover from "@/assets/menu-covers/chinese-nonveg-starter-cover.jpg";
+import momosCover from "@/assets/menu-covers/momos-cover.jpg";
+import sharingsCover from "@/assets/menu-covers/sharings-cover.jpg";
 interface SubCategory {
   id: string;
   name: string;
   dbName: string; // Name used in database
+  imageUrl?: string;
 }
 interface MainCategory {
   id: string;
@@ -38,23 +44,28 @@ const menuHierarchy: MainCategory[] = [{
   subcategories: [{
     id: "soup",
     name: "SOUP",
-    dbName: "SOUP"
+    dbName: "SOUP",
+    imageUrl: soupCover
   }, {
     id: "chinese-veg-starter",
     name: "CHINESE VEG STARTER",
-    dbName: "CHINESE VEG STARTER"
+    dbName: "CHINESE VEG STARTER",
+    imageUrl: chineseVegStarterCover
   }, {
     id: "chinese-nonveg-starter",
     name: "CHINESE NON-VEG STARTER",
-    dbName: "CHINESE NON-VEG STARTER"
+    dbName: "CHINESE NON-VEG STARTER",
+    imageUrl: chineseNonvegStarterCover
   }, {
     id: "momos",
     name: "MOMOS",
-    dbName: "MOMOS"
+    dbName: "MOMOS",
+    imageUrl: momosCover
   }, {
     id: "sharings",
     name: "SHARINGS",
-    dbName: "SHARINGS"
+    dbName: "SHARINGS",
+    imageUrl: sharingsCover
   }]
 }, {
   id: "main-course",
@@ -325,10 +336,25 @@ const Menu = () => {
               }} transition={{
                 delay: index * 0.05
               }} onClick={() => handleSubCategoryClick(subcat)} className="group cursor-pointer">
-                      <div className={`relative h-48 rounded-2xl overflow-hidden bg-gradient-to-br ${currentMainCategory.color} p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105`}>
-                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors" />
+                      <div className="relative h-48 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                        {/* Background Image or Gradient */}
+                        {subcat.imageUrl ? (
+                          <>
+                            <img 
+                              src={subcat.imageUrl} 
+                              alt={subcat.name}
+                              className="absolute inset-0 w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/20" />
+                          </>
+                        ) : (
+                          <>
+                            <div className={`absolute inset-0 bg-gradient-to-br ${currentMainCategory.color}`} />
+                            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors" />
+                          </>
+                        )}
                         
-                        <div className="relative h-full flex flex-col items-center justify-center text-white">
+                        <div className="relative h-full flex flex-col items-center justify-center text-white p-6">
                           <h3 className="text-xl font-bold text-center mb-2 drop-shadow-md">
                             {subcat.name}
                           </h3>
