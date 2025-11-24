@@ -159,6 +159,7 @@ const Menu = () => {
   const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null);
   const [intensity, setIntensity] = useState<IntensityLevel>("medium");
+  const [soupAnimationStyle, setSoupAnimationStyle] = useState<"cartoon" | "realistic" | "minimal" | "sticker">("cartoon");
   const {
     data: menuItems,
     isLoading
@@ -431,24 +432,66 @@ const Menu = () => {
                 </motion.div>
 
                 {/* Items Grid */}
-                {isLoading ? <div className="text-center py-20">
+                {isLoading ? (
+                  <div className="text-center py-20">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
                     <p className="mt-4 text-muted-foreground">Loading delicious items...</p>
-                  </div> : filteredItems.length === 0 ? <motion.div initial={{
-              opacity: 0,
-              scale: 0.9
-            }} animate={{
-              opacity: 1,
-              scale: 1
-            }} className="text-center py-20">
+                  </div>
+                ) : filteredItems.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center py-20"
+                  >
                     <div className="mb-6 text-6xl">🍽️</div>
                     <h3 className="font-playfair text-2xl font-bold mb-2">Coming Soon</h3>
                     <p className="text-muted-foreground">
                       We're preparing amazing dishes for this category. Stay tuned!
                     </p>
-                  </motion.div> : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredItems.map((item, index) => <MenuItemCard key={item.id} name={item.name} price={item.price} vegNonVeg={item.veg_nonveg} description={item.description} imageUrl={item.image_url || item.generated_image_url || undefined} index={index} />)}
-                  </div>}
+                  </motion.div>
+                ) : (
+                  <>
+                    {/* Animation Style Selector for Soup Category */}
+                    {selectedSubCategory?.name.toUpperCase().includes('SOUP') && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-8 flex justify-center gap-2 flex-wrap"
+                      >
+                        <span className="text-sm text-muted-foreground self-center mr-2">Animation Style:</span>
+                        {(['cartoon', 'realistic', 'minimal', 'sticker'] as const).map((style) => (
+                          <button
+                            key={style}
+                            onClick={() => setSoupAnimationStyle(style)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                              soupAnimationStyle === style
+                                ? 'bg-primary text-primary-foreground shadow-md scale-105'
+                                : 'bg-card hover:bg-card/80 text-foreground border border-border'
+                            }`}
+                          >
+                            {style.charAt(0).toUpperCase() + style.slice(1)}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {filteredItems.map((item, index) => (
+                        <MenuItemCard
+                          key={item.id}
+                          name={item.name}
+                          price={item.price}
+                          vegNonVeg={item.veg_nonveg}
+                          description={item.description}
+                          imageUrl={item.image_url || item.generated_image_url || undefined}
+                          index={index}
+                          category={item.category}
+                          soupAnimationStyle={soupAnimationStyle}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
               </motion.div>}
           </AnimatePresence>
         </main>
