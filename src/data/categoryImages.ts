@@ -13,6 +13,7 @@ import noodlesImg from "@/assets/food/noodles.jpg";
 import mojitosCoverImg from "@/assets/menu-covers/mojitos-cover.jpg";
 import milkshakesCoverImg from "@/assets/menu-covers/milkshakes-cover.jpg";
 import saladJuicesCoverImg from "@/assets/menu-covers/salad-juices-cover.jpg";
+import juicesCoverImg from "@/assets/menu-covers/juices-cover.jpg";
 
 export const categoryImages: Record<string, string> = {
   soup: soupImg,
@@ -28,7 +29,7 @@ export const categoryImages: Record<string, string> = {
   burger: burgerImg,
   sandwiches: burgerImg,
   salad: saladJuicesCoverImg,
-  juices: saladJuicesCoverImg,
+  juices: juicesCoverImg,
   dessert: dessertImg,
   mojitos: mojitosCoverImg,
   milkshakes: milkshakesCoverImg,
