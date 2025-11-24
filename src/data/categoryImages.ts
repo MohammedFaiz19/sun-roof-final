@@ -10,6 +10,8 @@ import mojitoImg from "@/assets/food/mojito.jpg";
 import milkshakeImg from "@/assets/food/milkshake.jpg";
 import riceImg from "@/assets/food/rice.jpg";
 import noodlesImg from "@/assets/food/noodles.jpg";
+import mojitosCoverImg from "@/assets/menu-covers/mojitos-cover.jpg";
+import milkshakesCoverImg from "@/assets/menu-covers/milkshakes-cover.jpg";
 
 export const categoryImages: Record<string, string> = {
   soup: soupImg,
@@ -27,6 +29,6 @@ export const categoryImages: Record<string, string> = {
   salad: saladImg,
   juices: mojitoImg,
   dessert: dessertImg,
-  mojitos: mojitoImg,
-  milkshakes: milkshakeImg,
+  mojitos: mojitosCoverImg,
+  milkshakes: milkshakesCoverImg,
 };
