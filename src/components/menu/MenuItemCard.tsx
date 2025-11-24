@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { getImagePath } from "@/lib/imageUtils";
-import { SoupAnimation, AnimationStyle } from "./SoupAnimation";
 
 interface MenuItemCardProps {
   name: string;
@@ -12,7 +11,6 @@ interface MenuItemCardProps {
   imageUrl?: string;
   index: number;
   category?: string;
-  soupAnimationStyle?: AnimationStyle;
 }
 export const MenuItemCard = ({
   name,
@@ -21,12 +19,10 @@ export const MenuItemCard = ({
   description,
   imageUrl,
   index,
-  category,
-  soupAnimationStyle = "cartoon"
+  category
 }: MenuItemCardProps) => {
   const isVeg = vegNonVeg === 'veg';
   const isBoth = vegNonVeg === 'both';
-  const isSoup = category?.toLowerCase().includes('soup');
 
   return (
     <motion.div
@@ -35,16 +31,8 @@ export const MenuItemCard = ({
       transition={{ delay: index * 0.05 }}
     >
       <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-border/50 bg-card/80 backdrop-blur-md">
-        {/* Soup Animation or Image */}
-        {isSoup ? (
-          <div className="relative h-56 overflow-hidden bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 flex items-center justify-center p-8">
-            <SoupAnimation 
-              soupName={name} 
-              style={soupAnimationStyle}
-              className="w-full h-full max-w-[200px] max-h-[200px]"
-            />
-          </div>
-        ) : imageUrl ? (
+        {/* Image (only show if imageUrl exists) */}
+        {imageUrl && (
           <div className="relative h-56 overflow-hidden">
             <ImageWithFallback 
               src={getImagePath(imageUrl)} 
@@ -53,7 +41,7 @@ export const MenuItemCard = ({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           </div>
-        ) : null}
+        )}
 
         {/* Content */}
         <div className="p-6 space-y-3">

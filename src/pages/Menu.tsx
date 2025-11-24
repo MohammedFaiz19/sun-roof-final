@@ -157,7 +157,6 @@ const Menu = () => {
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null);
-  const [soupAnimationStyle, setSoupAnimationStyle] = useState<"cartoon" | "realistic" | "minimal" | "sticker">("cartoon");
   const {
     data: menuItems,
     isLoading
@@ -448,30 +447,6 @@ const Menu = () => {
                   </motion.div>
                 ) : (
                   <>
-                    {/* Animation Style Selector for Soup Category */}
-                    {selectedSubCategory?.name.toUpperCase().includes('SOUP') && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-8 flex justify-center gap-2 flex-wrap"
-                      >
-                        <span className="text-sm text-muted-foreground self-center mr-2">Animation Style:</span>
-                        {(['cartoon', 'realistic', 'minimal', 'sticker'] as const).map((style) => (
-                          <button
-                            key={style}
-                            onClick={() => setSoupAnimationStyle(style)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                              soupAnimationStyle === style
-                                ? 'bg-primary text-primary-foreground shadow-md scale-105'
-                                : 'bg-card hover:bg-card/80 text-foreground border border-border'
-                            }`}
-                          >
-                            {style.charAt(0).toUpperCase() + style.slice(1)}
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {filteredItems.map((item, index) => (
                         <MenuItemCard
@@ -483,7 +458,6 @@ const Menu = () => {
                           imageUrl={item.image_url || item.generated_image_url || undefined}
                           index={index}
                           category={item.category}
-                          soupAnimationStyle={soupAnimationStyle}
                         />
                       ))}
                     </div>
