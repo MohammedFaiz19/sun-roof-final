@@ -193,6 +193,20 @@ All colors MUST be HSL.
     background-clip: text;
   }
   
+  /* Text readability enhancements */
+  .text-shadow-soft {
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-shadow-strong {
+    text-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .backdrop-blur-content {
+    backdrop-filter: blur(2px);
+    background: hsla(var(--background) / 0.85);
+  }
+  
   .category-starter {
     border-left: 4px solid hsl(var(--food-red));
   }

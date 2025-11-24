@@ -6,6 +6,8 @@ import Footer from "@/components/Footer";
 import { MenuAnimationCanvas } from "@/components/menu/MenuAnimationCanvas";
 import { AnimationToggle } from "@/components/menu/AnimationToggle";
 import { ChefHat, Pizza, Coffee, IceCream, Salad, ArrowLeft } from "lucide-react";
+import { FoodieBackground, IntensityLevel } from "@/components/FoodieBackground";
+import { IntensityControl } from "@/components/IntensityControl";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { MenuItemCard } from "@/components/menu/MenuItemCard";
 import { Button } from "@/components/ui/button";
@@ -156,6 +158,7 @@ const Menu = () => {
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null);
+  const [intensity, setIntensity] = useState<IntensityLevel>("medium");
   const {
     data: menuItems,
     isLoading
@@ -196,9 +199,12 @@ const Menu = () => {
       </Helmet>
 
       <div className="min-h-screen bg-background relative overflow-hidden">
+        <FoodieBackground intensity={intensity} />
+        <IntensityControl intensity={intensity} onIntensityChange={setIntensity} />
         {animationsEnabled && <MenuAnimationCanvas isEnabled={animationsEnabled} />}
         
-        <Navigation />
+        <div className="relative z-10">
+          <Navigation />
         
         <main className="container mx-auto px-4 py-24 relative z-10">
           {/* Header */}
@@ -447,7 +453,8 @@ const Menu = () => {
           </AnimatePresence>
         </main>
 
-        <Footer />
+          <Footer />
+        </div>
       </div>
     </>;
 };

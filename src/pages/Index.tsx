@@ -6,14 +6,20 @@ import Footer from "@/components/Footer";
 import Gallery from "@/components/Gallery";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { FoodieBackground, IntensityLevel } from "@/components/FoodieBackground";
+import { IntensityControl } from "@/components/IntensityControl";
 
 const Index = () => {
   const navigate = useNavigate();
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [intensity, setIntensity] = useState<IntensityLevel>("medium");
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
+    <div className="min-h-screen bg-background relative">
+      <FoodieBackground intensity={intensity} />
+      <IntensityControl intensity={intensity} onIntensityChange={setIntensity} />
+      <div className="relative z-10">
+        <Navigation />
       
       {/* Main Content */}
       <main id="main-content">
@@ -108,8 +114,9 @@ const Index = () => {
         </section>
       </main>
 
-      <Footer />
-      <BookingModal open={bookingModalOpen} onOpenChange={setBookingModalOpen} />
+        <Footer />
+        <BookingModal open={bookingModalOpen} onOpenChange={setBookingModalOpen} />
+      </div>
     </div>
   );
 };
