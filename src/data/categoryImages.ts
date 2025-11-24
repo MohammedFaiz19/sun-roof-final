@@ -7,7 +7,7 @@ import burgerImg from "@/assets/food/burger.jpg";
 import momosImg from "@/assets/food/momos.jpg";
 import dessertImg from "@/assets/food/dessert.jpg";
 import mojitoImg from "@/assets/food/mojito.jpg";
-import milkshakeImg from "@/assets/food/milkshake.jpg";
+import milkshakeImg from "@/assets/menu-covers/milkshakes-cover.jpg";
 import riceImg from "@/assets/food/rice.jpg";
 import noodlesImg from "@/assets/food/noodles.jpg";
 
