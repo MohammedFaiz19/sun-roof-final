@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Helmet } from "react-helmet";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { FoodieBackground, IntensityLevel } from "@/components/FoodieBackground";
-import { IntensityControl } from "@/components/IntensityControl";
+import { FoodieBackground } from "@/components/FoodieBackground";
 import {
   Accordion,
   AccordionContent,
@@ -60,8 +59,6 @@ const faqData = [
 ];
 
 const FAQ = () => {
-  const [intensity, setIntensity] = useState<IntensityLevel>("medium");
-
   return (
     <>
       <Helmet>
@@ -70,8 +67,7 @@ const FAQ = () => {
       </Helmet>
 
       <div className="min-h-screen bg-background relative">
-        <FoodieBackground intensity={intensity} />
-        <IntensityControl intensity={intensity} onIntensityChange={setIntensity} />
+        <FoodieBackground intensity="medium" />
         
         <div className="relative z-10">
           <Navigation />
