@@ -50,24 +50,12 @@ const faqData = [
     answer: "We accept cash, all major credit and debit cards, and digital payment methods including UPI, PayTm, Google Pay, and other popular payment apps."
   },
   {
-    question: "Is your restaurant wheelchair accessible?",
-    answer: "Yes, our restaurant is wheelchair accessible with ramp access and accessible restrooms to ensure a comfortable experience for all our guests."
-  },
-  {
-    question: "Do you serve alcohol?",
-    answer: "We serve a variety of non-alcoholic beverages including fresh juices, mojitos, milkshakes, and coffee. We do not serve alcoholic beverages."
-  },
-  {
     question: "Can I customize my order?",
     answer: "Yes! We're happy to accommodate customization requests where possible. Let our staff know your preferences, and we'll do our best to make your meal exactly how you like it."
   },
   {
     question: "How can I provide feedback about my experience?",
     answer: "We value your feedback! You can share your experience with us directly at the restaurant, call us, message us on Instagram @_sunroof_cafe_, or leave a review on Google Maps."
-  },
-  {
-    question: "Do you have WiFi for customers?",
-    answer: "Yes, we offer complimentary WiFi for all our customers. Ask our staff for the password when you visit."
   }
 ];
 
