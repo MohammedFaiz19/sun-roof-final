@@ -106,10 +106,19 @@ const Index = () => {
         <section id="faq" className="container mx-auto px-4 py-20 scroll-mt-20">
           <div className="text-center mb-12">
             <h2 className="font-playfair text-5xl font-bold gradient-text mb-4">FAQ</h2>
-            <p className="font-inter text-lg text-foreground">Frequently asked questions</p>
+            <p className="font-inter text-lg text-foreground">Got questions? We have answers!</p>
           </div>
-          <div className="max-w-3xl mx-auto p-8 rounded-3xl bg-gradient-card border-2 border-primary/30 shadow-medium">
-            <p className="text-center font-inter text-foreground">FAQ section coming soon!</p>
+          <div className="max-w-3xl mx-auto p-8 rounded-3xl bg-gradient-card border-2 border-primary/30 shadow-medium text-center">
+            <p className="font-inter text-foreground mb-6">
+              Find answers to common questions about our menu, reservations, hours, and more.
+            </p>
+            <Button
+              size="lg"
+              onClick={() => navigate("/faq")}
+              className="gradient-foodie hover:shadow-color text-lg font-semibold px-8 py-4 rounded-full text-white shadow-medium hover:scale-105 transition-all"
+            >
+              View All FAQs
+            </Button>
           </div>
         </section>
       </main>
