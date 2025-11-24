@@ -26,6 +26,8 @@ import pastaCover from "@/assets/menu-covers/pasta-cover.jpg";
 import pizzaCover from "@/assets/menu-covers/pizza-cover.jpg";
 import burgerCover from "@/assets/menu-covers/burger-cover.jpg";
 import sandwichesCover from "@/assets/menu-covers/sandwiches-cover.jpg";
+import saladJuicesCover from "@/assets/menu-covers/salad-juices-cover.jpg";
+import juicesCover from "@/assets/menu-covers/juices-cover.jpg";
 interface SubCategory {
   id: string;
   name: string;
@@ -120,11 +122,13 @@ const menuHierarchy: MainCategory[] = [{
   subcategories: [{
     id: "salad",
     name: "SALAD",
-    dbName: "SALAD"
+    dbName: "SALAD",
+    imageUrl: saladJuicesCover
   }, {
     id: "juices",
     name: "JUICES",
-    dbName: "JUICES"
+    dbName: "JUICES",
+    imageUrl: juicesCover
   }]
 }, {
   id: "desserts",
