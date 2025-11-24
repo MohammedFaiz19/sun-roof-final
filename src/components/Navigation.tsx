@@ -11,7 +11,7 @@ const navItems = [
   { id: "gallery", title: "Gallery", hash: "#gallery" },
   { id: "event", title: "Events", hash: "#event" },
   { id: "about", title: "About", hash: "#about" },
-  { id: "faq", title: "FAQ", hash: "#faq" },
+  { id: "faq", title: "FAQ", path: "/faq" },
 ];
 
 const Navigation = () => {
