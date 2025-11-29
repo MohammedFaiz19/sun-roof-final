@@ -44,8 +44,51 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          event_date: string
+          event_time: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_past: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          event_date: string
+          event_time?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_past?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          event_date?: string
+          event_time?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_past?: boolean | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       gallery_images: {
         Row: {
+          album: string | null
           alt_text: string
           caption: string | null
           created_at: string
@@ -56,6 +99,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          album?: string | null
           alt_text: string
           caption?: string | null
           created_at?: string
@@ -66,6 +110,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          album?: string | null
           alt_text?: string
           caption?: string | null
           created_at?: string
@@ -81,28 +126,40 @@ export type Database = {
         Row: {
           alt_text: string
           created_at: string
+          cta_link: string | null
+          cta_text: string | null
           display_order: number
           id: string
           image_url: string
           is_active: boolean
+          subtitle: string | null
+          title: string | null
           updated_at: string
         }
         Insert: {
           alt_text: string
           created_at?: string
+          cta_link?: string | null
+          cta_text?: string | null
           display_order?: number
           id?: string
           image_url: string
           is_active?: boolean
+          subtitle?: string | null
+          title?: string | null
           updated_at?: string
         }
         Update: {
           alt_text?: string
           created_at?: string
+          cta_link?: string | null
+          cta_text?: string | null
           display_order?: number
           id?: string
           image_url?: string
           is_active?: boolean
+          subtitle?: string | null
+          title?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -155,15 +212,93 @@ export type Database = {
         }
         Relationships: []
       }
+      offers: {
+        Row: {
+          coupon_code: string | null
+          created_at: string | null
+          description: string
+          discount_type: string | null
+          discount_value: number | null
+          display_on_banner: boolean | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          terms: string | null
+          title: string
+          updated_at: string | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          coupon_code?: string | null
+          created_at?: string | null
+          description: string
+          discount_type?: string | null
+          discount_value?: number | null
+          display_on_banner?: boolean | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          terms?: string | null
+          title: string
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          coupon_code?: string | null
+          created_at?: string | null
+          description?: string
+          discount_type?: string | null
+          discount_value?: number | null
+          display_on_banner?: boolean | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          terms?: string | null
+          title?: string
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "manager" | "staff"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -290,6 +425,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "manager", "staff"],
+    },
   },
 } as const

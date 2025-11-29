@@ -17,7 +17,7 @@ const GalleryManager = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<GalleryImage>>({});
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadForm, setUploadForm] = useState({ alt_text: "", caption: "" });
+  const [uploadForm, setUploadForm] = useState({ alt_text: "", caption: "", album: "general" });
   const queryClient = useQueryClient();
 
   const { data: images = [], isLoading } = useQuery({
@@ -91,6 +91,7 @@ const GalleryManager = () => {
           image_url: publicUrl,
           alt_text: uploadForm.alt_text,
           caption: uploadForm.caption,
+          album: uploadForm.album,
           display_order: maxOrder + 1,
           is_active: true,
         });
@@ -102,7 +103,7 @@ const GalleryManager = () => {
       queryClient.invalidateQueries({ queryKey: ["gallery-images"] });
       toast.success("Image uploaded successfully");
       setUploadFile(null);
-      setUploadForm({ alt_text: "", caption: "" });
+      setUploadForm({ alt_text: "", caption: "", album: "general" });
     },
     onError: () => toast.error("Failed to upload image"),
   });
@@ -185,6 +186,15 @@ const GalleryManager = () => {
                 onChange={(e) => setUploadForm({ ...uploadForm, caption: e.target.value })}
               />
             </div>
+            <div>
+              <Label htmlFor="album">Album</Label>
+              <Input
+                id="album"
+                placeholder="Album name (e.g., Interior, Food, Events)"
+                value={uploadForm.album}
+                onChange={(e) => setUploadForm({ ...uploadForm, album: e.target.value })}
+              />
+            </div>
             <Button
               onClick={() => uploadMutation.mutate()}
               disabled={!uploadFile || !uploadForm.alt_text || uploadMutation.isPending}
@@ -223,6 +233,11 @@ const GalleryManager = () => {
                         value={editForm.caption || ""}
                         onChange={(e) => setEditForm({ ...editForm, caption: e.target.value })}
                       />
+                      <Input
+                        placeholder="Album"
+                        value={editForm.album || "general"}
+                        onChange={(e) => setEditForm({ ...editForm, album: e.target.value })}
+                      />
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -255,6 +270,7 @@ const GalleryManager = () => {
                   <div className="flex-1 space-y-1">
                     <p className="font-medium">{image.caption}</p>
                     <p className="text-sm text-muted-foreground">{image.alt_text}</p>
+                    <p className="text-xs text-muted-foreground">Album: {image.album || 'general'}</p>
                     <p className="text-xs text-muted-foreground">Order: {image.display_order}</p>
                   </div>
                   <div className="flex items-center gap-2">
