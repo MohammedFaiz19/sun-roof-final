@@ -77,7 +77,7 @@ const Navigation = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open("https://www.swiggy.com", "_blank")}
+                onClick={() => window.open("https://www.swiggy.com/city/mysore/sunroof-cafe-and-restaurant-mysore-north-rest1164798", "_blank")}
                 className="bg-flat-citrus/10 hover:bg-flat-citrus text-flat-citrus hover:text-white border-2 border-flat-citrus"
               >
                 Swiggy
@@ -85,7 +85,7 @@ const Navigation = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open("https://www.zomato.com", "_blank")}
+                onClick={() => window.open("https://www.zomato.com/mysore/sunroof-cafe-restaurant-1-rajiv-nagar/order", "_blank")}
                 className="bg-flat-coral/10 hover:bg-flat-coral text-flat-coral hover:text-white border-2 border-flat-coral"
               >
                 Zomato
@@ -117,10 +117,10 @@ const Navigation = () => {
               ))}
               
               <div className="pt-4 border-t-2 border-border flex gap-3">
-                <Button onClick={() => window.open("https://www.swiggy.com", "_blank")} className="flex-1 bg-flat-citrus text-white">
+                <Button onClick={() => window.open("https://www.swiggy.com/city/mysore/sunroof-cafe-and-restaurant-mysore-north-rest1164798", "_blank")} className="flex-1 bg-flat-citrus text-white">
                   Swiggy
                 </Button>
-                <Button onClick={() => window.open("https://www.zomato.com", "_blank")} className="flex-1 bg-flat-coral text-white">
+                <Button onClick={() => window.open("https://www.zomato.com/mysore/sunroof-cafe-restaurant-1-rajiv-nagar/order", "_blank")} className="flex-1 bg-flat-coral text-white">
                   Zomato
                 </Button>
               </div>

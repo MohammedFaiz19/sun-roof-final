@@ -1,8 +1,8 @@
 import { Instagram, Phone, MapPin, Clock } from "lucide-react";
 
 const Footer = () => {
-  const phone = "+919066466551";
-  const whatsappUrl = `https://wa.me/919066466551`;
+  const phone = "8618686726";
+  const whatsappUrl = `https://wa.me/918618686726`;
   const instagram = "https://www.instagram.com/_sunroof_cafe_?igsh=cDZ0dnpoMGZkbXBv";
   const mapsUrl = "https://maps.app.goo.gl/H1e9VTrBW1QVdoRA9";
   const hours = "12:30 PM - 11:00 PM (Every Day)";

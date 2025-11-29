@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, Instagram } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Import gallery images
@@ -147,13 +147,22 @@ const HeroCarousel = ({ onBookClick }: HeroCarouselProps) => {
           >
             View Menu
           </Button>
+          <Button
+            size="lg"
+            onClick={() => window.open("https://www.instagram.com/_sunroof_cafe_?igsh=cDZ0dnpoMGZkbXBv", "_blank")}
+            variant="outline"
+            className="border-4 border-white bg-white/10 backdrop-blur-sm text-white hover:bg-white hover:text-primary font-inter font-semibold px-10 py-7 text-lg rounded-full hover:scale-105 transition-all duration-300"
+          >
+            <Instagram className="mr-2 h-5 w-5" />
+            Instagram
+          </Button>
         </div>
       </div>
 
       {/* Swiggy & Zomato Shortcuts */}
       <div className="absolute bottom-4 right-4 z-30 flex gap-3">
         <a
-          href="https://www.swiggy.com"
+          href="https://www.swiggy.com/city/mysore/sunroof-cafe-and-restaurant-mysore-north-rest1164798"
           target="_blank"
           rel="noopener noreferrer"
           className="bg-flat-citrus hover:bg-flat-citrus/80 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-medium hover:shadow-strong transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -161,7 +170,7 @@ const HeroCarousel = ({ onBookClick }: HeroCarouselProps) => {
           Order on Swiggy
         </a>
         <a
-          href="https://www.zomato.com"
+          href="https://www.zomato.com/mysore/sunroof-cafe-restaurant-1-rajiv-nagar/order"
           target="_blank"
           rel="noopener noreferrer"
           className="bg-flat-coral hover:bg-flat-coral/80 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-medium hover:shadow-strong transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary"
