@@ -4,6 +4,7 @@ import BookingModal from "@/components/BookingModal";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Gallery from "@/components/Gallery";
+import GoogleReviews from "@/components/GoogleReviews";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { FoodieBackground } from "@/components/FoodieBackground";
@@ -59,6 +60,9 @@ const Index = () => {
             </Button>
           </div>
         </section>
+
+        {/* Google Reviews Section */}
+        <GoogleReviews />
 
         {/* Gallery Section */}
         <section id="gallery" className="container mx-auto px-4 py-20 scroll-mt-20">
