@@ -2,7 +2,7 @@ import { Instagram, Phone, MapPin, Clock } from "lucide-react";
 
 const Footer = () => {
   const phone = "8618686726";
-  const whatsappUrl = `https://wa.me/918618686726`;
+  const whatsappUrl = `https://wa.me/918618686726?text=Hi!%20I'd%20like%20to%20know%20more%20about%20Sunroof%20Cafe%20%26%20Restaurant`;
   const instagram = "https://www.instagram.com/_sunroof_cafe_?igsh=cDZ0dnpoMGZkbXBv";
   const mapsUrl = "https://maps.app.goo.gl/H1e9VTrBW1QVdoRA9";
   const hours = "12:30 PM - 11:00 PM (Every Day)";
