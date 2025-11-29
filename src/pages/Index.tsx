@@ -91,7 +91,7 @@ const Index = () => {
               Welcome to Sunroof Cafe & Restaurant - where every meal is a celebration!
             </p>
             <div className="text-center font-inter text-foreground space-y-2">
-              <p>📞 <a href="tel:+919066466551" className="text-primary hover:text-accent transition-colors">+91 90664 66551</a></p>
+              <p>📞 <a href="tel:8618686726" className="text-primary hover:text-accent transition-colors">8618686726</a></p>
               <p>📷 <a href="https://www.instagram.com/_sunroof_cafe_?igsh=cDZ0dnpoMGZkbXBv" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-accent transition-colors">@_sunroof_cafe_</a></p>
               <p>🕐 12:30 PM - 11:00 PM (Every Day)</p>
               <p>📍 <a href="https://maps.app.goo.gl/H1e9VTrBW1QVdoRA9" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-accent transition-colors">View on Google Maps</a></p>

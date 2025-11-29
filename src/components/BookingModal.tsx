@@ -75,7 +75,7 @@ Contact: ${formData.phone}${formData.email ? `\nEmail: ${formData.email}` : ''}$
 
 Looking forward to dining with you!`;
 
-    const whatsappUrl = `https://wa.me/919066466551?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/918618686726?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     
     toast({
@@ -239,7 +239,7 @@ Looking forward to dining with you!`;
               type="button"
               size="lg"
               variant="outline"
-              onClick={() => window.location.href = "tel:+919066466551"}
+              onClick={() => window.location.href = "tel:8618686726"}
               className="sm:w-auto border-2 border-primary text-primary hover:bg-primary hover:text-white py-6 rounded-full transition-all"
             >
               <Phone className="mr-2 h-4 w-4" />

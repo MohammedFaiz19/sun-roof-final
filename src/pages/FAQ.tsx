@@ -129,7 +129,7 @@ const FAQ = () => {
                 </p>
                 <div className="flex flex-wrap justify-center gap-4 font-inter">
                   <a
-                    href="tel:+919066466551"
+                    href="tel:8618686726"
                     className="text-primary hover:text-accent transition-colors font-semibold"
                   >
                     📞 Call us: +91 90664 66551
