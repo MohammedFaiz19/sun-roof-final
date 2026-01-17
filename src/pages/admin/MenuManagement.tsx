@@ -124,15 +124,22 @@ const MenuManagement = () => {
     },
   });
 
-  const resetForm = () => {
+  const resetForm = (category?: string) => {
     setFormData({
       name: '',
-      category: '',
+      category: category || '',
       price: '',
       veg_nonveg: 'veg',
       description: '',
       display_order: 0,
     });
+  };
+
+  const startAddInCategory = (category: string) => {
+    saveScrollPosition();
+    resetForm(category);
+    setEditingItem(null);
+    setIsAddDialogOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -344,9 +351,19 @@ const MenuManagement = () => {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>{category}</span>
-              <span className="text-sm font-normal text-muted-foreground">
-                {groupedItems[category].length} items
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-normal text-muted-foreground">
+                  {groupedItems[category].length} items
+                </span>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => startAddInCategory(category)}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Item
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
