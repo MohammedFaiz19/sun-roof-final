@@ -49,11 +49,22 @@ const MenuManagement = () => {
     scrollPositionRef.current = window.scrollY;
   };
 
-  // Restore scroll position after mutation
+  // Restore scroll position after mutation with multiple attempts to ensure it works after re-render
   const restoreScrollPosition = () => {
+    const savedPosition = scrollPositionRef.current;
+    // Immediate restore
+    window.scrollTo(0, savedPosition);
+    // After React re-render
     requestAnimationFrame(() => {
-      window.scrollTo(0, scrollPositionRef.current);
+      window.scrollTo(0, savedPosition);
     });
+    // After query refetch and DOM update
+    setTimeout(() => {
+      window.scrollTo(0, savedPosition);
+    }, 50);
+    setTimeout(() => {
+      window.scrollTo(0, savedPosition);
+    }, 150);
   };
 
   const addItemMutation = useMutation({
