@@ -12,8 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit2, Trash2, Search, X, Undo2 } from 'lucide-react';
 import { BatchImageGenerator } from '@/components/admin/BatchImageGenerator';
 
-interface DeletedItem {
+interface UndoableAction {
+  type: 'delete' | 'update';
   item: any;
+  previousData?: any; // For updates, stores the data before modification
   timeoutId: ReturnType<typeof setTimeout>;
 }
 
@@ -32,8 +34,8 @@ const MenuManagement = () => {
   
   // Ref to track scroll position
   const scrollPositionRef = useRef<number>(0);
-  // Track recently deleted items for undo
-  const [recentlyDeleted, setRecentlyDeleted] = useState<DeletedItem | null>(null);
+  // Track undoable actions (delete or update)
+  const [undoableAction, setUndoableAction] = useState<UndoableAction | null>(null);
   
   const { toast, dismiss } = useToast();
   const queryClient = useQueryClient();
@@ -100,7 +102,6 @@ const MenuManagement = () => {
     onMutate: saveScrollPosition,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] });
-      toast({ title: 'Menu item updated successfully' });
       setEditingItem(null);
       resetForm();
       restoreScrollPosition();
@@ -151,16 +152,16 @@ const MenuManagement = () => {
 
   const handleDeleteWithUndo = (item: any) => {
     // Clear any existing undo timeout
-    if (recentlyDeleted) {
-      clearTimeout(recentlyDeleted.timeoutId);
+    if (undoableAction) {
+      clearTimeout(undoableAction.timeoutId);
     }
 
     // Store the item for potential undo
     const timeoutId = setTimeout(() => {
-      setRecentlyDeleted(null);
+      setUndoableAction(null);
     }, 10000); // 10 seconds to undo
 
-    setRecentlyDeleted({ item, timeoutId });
+    setUndoableAction({ type: 'delete', item, timeoutId });
 
     // Delete the item
     deleteItemMutation.mutate(item.id);
@@ -176,7 +177,7 @@ const MenuManagement = () => {
             variant="outline"
             className="ml-4"
             onClick={() => {
-              handleUndo(item);
+              handleUndoDelete(item);
               dismiss();
             }}
           >
@@ -189,12 +190,77 @@ const MenuManagement = () => {
     });
   };
 
-  const handleUndo = (item: any) => {
-    if (recentlyDeleted) {
-      clearTimeout(recentlyDeleted.timeoutId);
-      setRecentlyDeleted(null);
+  const handleUpdateWithUndo = (item: any, newData: typeof formData) => {
+    // Clear any existing undo timeout
+    if (undoableAction) {
+      clearTimeout(undoableAction.timeoutId);
+    }
+
+    // Store the previous data for potential undo
+    const previousData = {
+      name: item.name,
+      category: item.category,
+      price: item.price,
+      veg_nonveg: item.veg_nonveg,
+      description: item.description,
+      display_order: item.display_order,
+    };
+
+    const timeoutId = setTimeout(() => {
+      setUndoableAction(null);
+    }, 10000); // 10 seconds to undo
+
+    setUndoableAction({ type: 'update', item, previousData, timeoutId });
+
+    // Update the item
+    updateItemMutation.mutate({ id: item.id, data: newData });
+
+    // Show toast with undo button
+    toast({
+      title: 'Menu item updated',
+      description: (
+        <div className="flex items-center justify-between w-full">
+          <span>"{newData.name}" was updated</span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="ml-4"
+            onClick={() => {
+              handleUndoUpdate(item.id, previousData, newData.name);
+              dismiss();
+            }}
+          >
+            <Undo2 className="h-4 w-4 mr-1" />
+            Undo
+          </Button>
+        </div>
+      ),
+      duration: 10000,
+    });
+  };
+
+  const handleUndoDelete = (item: any) => {
+    if (undoableAction) {
+      clearTimeout(undoableAction.timeoutId);
+      setUndoableAction(null);
     }
     restoreItemMutation.mutate(item);
+  };
+
+  const handleUndoUpdate = (itemId: string, previousData: typeof formData, itemName: string) => {
+    if (undoableAction) {
+      clearTimeout(undoableAction.timeoutId);
+      setUndoableAction(null);
+    }
+    
+    // Restore the previous data
+    updateItemMutation.mutate({ id: itemId, data: previousData }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] });
+        toast({ title: `"${itemName}" reverted to previous state` });
+        restoreScrollPosition();
+      }
+    });
   };
 
   const resetForm = (category?: string) => {
@@ -218,7 +284,7 @@ const MenuManagement = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingItem) {
-      updateItemMutation.mutate({ id: editingItem.id, data: formData });
+      handleUpdateWithUndo(editingItem, formData);
     } else {
       addItemMutation.mutate(formData);
     }
