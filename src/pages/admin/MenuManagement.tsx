@@ -87,6 +87,14 @@ const MenuManagement = () => {
       resetForm();
       restoreScrollPosition();
     },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to update menu item', 
+        description: error.message || 'You may not have admin permissions. Please sign in with an admin account.',
+        variant: 'destructive' 
+      });
+      restoreScrollPosition();
+    },
   });
 
   const deleteItemMutation = useMutation({
