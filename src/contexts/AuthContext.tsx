@@ -11,18 +11,32 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  bypassAuth: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Check if bypass mode is enabled in localStorage
+const BYPASS_KEY = 'admin_bypass_enabled';
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => {
+    // Check localStorage for bypass mode on initial load
+    return localStorage.getItem(BYPASS_KEY) === 'true';
+  });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // If bypass mode is enabled, skip auth check
+    if (localStorage.getItem(BYPASS_KEY) === 'true') {
+      setIsAdmin(true);
+      setLoading(false);
+      return;
+    }
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -94,12 +108,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    // Clear bypass mode when signing out
+    localStorage.removeItem(BYPASS_KEY);
+    setIsAdmin(false);
     await supabase.auth.signOut();
     navigate('/auth');
   };
 
+  const bypassAuth = () => {
+    localStorage.setItem(BYPASS_KEY, 'true');
+    setIsAdmin(true);
+    setLoading(false);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signUp, signOut, bypassAuth }}>
       {children}
     </AuthContext.Provider>
   );
