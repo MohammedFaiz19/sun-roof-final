@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { MenuAnimationCanvas } from "@/components/menu/MenuAnimationCanvas";
@@ -162,6 +163,8 @@ const menuHierarchy: MainCategory[] = [{
   }]
 }];
 const Menu = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [selectedMainCategory, setSelectedMainCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | null>(null);
@@ -177,26 +180,89 @@ const Menu = () => {
     const normalizedSelected = selectedSubCategory.dbName.toUpperCase().trim();
     return normalizedCategory === normalizedSelected;
   }) || [] : [];
+
+  // Handle browser back button using popstate
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      if (state) {
+        setSelectedMainCategory(state.mainCategory || null);
+        if (state.subCategory && state.mainCategory) {
+          const mainCat = menuHierarchy.find(cat => cat.id === state.mainCategory);
+          const subCat = mainCat?.subcategories.find(sub => sub.id === state.subCategory);
+          setSelectedSubCategory(subCat || null);
+        } else {
+          setSelectedSubCategory(null);
+        }
+      } else {
+        // No state means we're at the root menu view
+        setSelectedMainCategory(null);
+        setSelectedSubCategory(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Push initial state on mount
+  useEffect(() => {
+    if (!window.history.state?.isMenuState) {
+      window.history.replaceState({ isMenuState: true, mainCategory: null, subCategory: null }, '', location.pathname);
+    }
+  }, [location.pathname]);
+
   const handleMainCategoryClick = (categoryId: string) => {
     const category = menuHierarchy.find(cat => cat.id === categoryId);
     setSelectedMainCategory(categoryId);
     
     // Auto-select subcategory if there's only one
     if (category && category.subcategories.length === 1) {
-      setSelectedSubCategory(category.subcategories[0]);
+      const subCat = category.subcategories[0];
+      setSelectedSubCategory(subCat);
+      // Push state for items view (single subcategory)
+      window.history.pushState(
+        { isMenuState: true, mainCategory: categoryId, subCategory: subCat.id },
+        '',
+        location.pathname
+      );
     } else {
       setSelectedSubCategory(null);
+      // Push state for subcategories view
+      window.history.pushState(
+        { isMenuState: true, mainCategory: categoryId, subCategory: null },
+        '',
+        location.pathname
+      );
     }
   };
+
   const handleBackToMainCategories = () => {
     setSelectedMainCategory(null);
     setSelectedSubCategory(null);
+    window.history.pushState(
+      { isMenuState: true, mainCategory: null, subCategory: null },
+      '',
+      location.pathname
+    );
   };
+
   const handleBackToSubcategories = () => {
     setSelectedSubCategory(null);
+    window.history.pushState(
+      { isMenuState: true, mainCategory: selectedMainCategory, subCategory: null },
+      '',
+      location.pathname
+    );
   };
+
   const handleSubCategoryClick = (subcat: SubCategory) => {
     setSelectedSubCategory(subcat);
+    window.history.pushState(
+      { isMenuState: true, mainCategory: selectedMainCategory, subCategory: subcat.id },
+      '',
+      location.pathname
+    );
   };
   return <>
       <Helmet>
