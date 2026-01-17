@@ -9,8 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit2, Trash2, Search, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Undo2 } from 'lucide-react';
 import { BatchImageGenerator } from '@/components/admin/BatchImageGenerator';
+
+interface DeletedItem {
+  item: any;
+  timeoutId: ReturnType<typeof setTimeout>;
+}
 
 const MenuManagement = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -27,8 +32,10 @@ const MenuManagement = () => {
   
   // Ref to track scroll position
   const scrollPositionRef = useRef<number>(0);
+  // Track recently deleted items for undo
+  const [recentlyDeleted, setRecentlyDeleted] = useState<DeletedItem | null>(null);
   
-  const { toast } = useToast();
+  const { toast, dismiss } = useToast();
   const queryClient = useQueryClient();
 
   const { data: menuItems = [] } = useQuery({
@@ -119,10 +126,76 @@ const MenuManagement = () => {
     onMutate: saveScrollPosition,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] });
-      toast({ title: 'Menu item deleted successfully' });
       restoreScrollPosition();
     },
   });
+
+  const restoreItemMutation = useMutation({
+    mutationFn: async (item: any) => {
+      // Remove id to let Supabase generate a new one, but keep all other data
+      const { id, created_at, updated_at, ...itemData } = item;
+      const { error } = await supabase.from('menu_items').insert([itemData]);
+      if (error) throw error;
+    },
+    onMutate: saveScrollPosition,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-menu-items'] });
+      toast({ title: 'Menu item restored successfully' });
+      restoreScrollPosition();
+    },
+    onError: () => {
+      toast({ title: 'Failed to restore item', variant: 'destructive' });
+      restoreScrollPosition();
+    },
+  });
+
+  const handleDeleteWithUndo = (item: any) => {
+    // Clear any existing undo timeout
+    if (recentlyDeleted) {
+      clearTimeout(recentlyDeleted.timeoutId);
+    }
+
+    // Store the item for potential undo
+    const timeoutId = setTimeout(() => {
+      setRecentlyDeleted(null);
+    }, 10000); // 10 seconds to undo
+
+    setRecentlyDeleted({ item, timeoutId });
+
+    // Delete the item
+    deleteItemMutation.mutate(item.id);
+
+    // Show toast with undo button
+    toast({
+      title: 'Menu item deleted',
+      description: (
+        <div className="flex items-center justify-between w-full">
+          <span>"{item.name}" was deleted</span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="ml-4"
+            onClick={() => {
+              handleUndo(item);
+              dismiss();
+            }}
+          >
+            <Undo2 className="h-4 w-4 mr-1" />
+            Undo
+          </Button>
+        </div>
+      ),
+      duration: 10000,
+    });
+  };
+
+  const handleUndo = (item: any) => {
+    if (recentlyDeleted) {
+      clearTimeout(recentlyDeleted.timeoutId);
+      setRecentlyDeleted(null);
+    }
+    restoreItemMutation.mutate(item);
+  };
 
   const resetForm = (category?: string) => {
     setFormData({
@@ -399,7 +472,7 @@ const MenuManagement = () => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => deleteItemMutation.mutate(item.id)}
+                      onClick={() => handleDeleteWithUndo(item)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
