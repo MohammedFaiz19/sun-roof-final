@@ -216,6 +216,9 @@ const Menu = () => {
     const category = menuHierarchy.find(cat => cat.id === categoryId);
     setSelectedMainCategory(categoryId);
     
+    // Scroll to top when entering a new category
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     // Auto-select subcategory if there's only one
     if (category && category.subcategories.length === 1) {
       const subCat = category.subcategories[0];
@@ -258,6 +261,10 @@ const Menu = () => {
 
   const handleSubCategoryClick = (subcat: SubCategory) => {
     setSelectedSubCategory(subcat);
+    
+    // Scroll to top when entering a subcategory
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     window.history.pushState(
       { isMenuState: true, mainCategory: selectedMainCategory, subCategory: subcat.id },
       '',
