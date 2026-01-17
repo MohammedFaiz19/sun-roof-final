@@ -37,7 +37,7 @@ const MenuManagement = () => {
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
-        .order('category', { ascending: true })
+        // Match the website: preserve the exact ordering via display_order
         .order('display_order', { ascending: true });
       if (error) throw error;
       return data;
@@ -167,15 +167,49 @@ const MenuManagement = () => {
     );
   });
 
-  // Group filtered items by category, maintaining display_order
+  // Group filtered items by category, maintaining the item order coming from display_order
   const groupedItems = filteredItems.reduce((acc, item) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;
   }, {} as Record<string, any[]>);
 
-  // Sort categories alphabetically and items within by display_order
-  const sortedCategories = Object.keys(groupedItems).sort();
+  // Match the website's category order (same order as Menu.tsx menuHierarchy subcategories)
+  const normalizeCategory = (value: string) =>
+    value
+      .toUpperCase()
+      .trim()
+      .replace(/[—–−]/g, '-') // normalize long dashes
+      .replace(/\s+/g, ' ');
+
+  const websiteCategoryOrder = [
+    'SOUP',
+    'CHINESE VEG STARTER',
+    'CHINESE NON-VEG STARTER',
+    'MOMOS',
+    'SHARINGS',
+    'MAIN DISH CHINESE',
+    'SIDE DISH - CHINESE',
+    'PASTA',
+    'PIZZA',
+    'BURGER',
+    'SANDWICHES',
+    'SALAD',
+    'JUICES',
+    'DESSERTS',
+    'MOJITOS',
+    'MILKSHAKES',
+  ].map(normalizeCategory);
+
+  const getCategorySortIndex = (category: string) => {
+    const idx = websiteCategoryOrder.indexOf(normalizeCategory(category));
+    return idx === -1 ? Number.MAX_SAFE_INTEGER : idx;
+  };
+
+  const sortedCategories = Object.keys(groupedItems).sort((a, b) => {
+    const diff = getCategorySortIndex(a) - getCategorySortIndex(b);
+    return diff !== 0 ? diff : a.localeCompare(b);
+  });
 
   return (
     <div className="space-y-6">
@@ -197,7 +231,14 @@ const MenuManagement = () => {
               Add Menu Item
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent
+            className="max-w-2xl"
+            onCloseAutoFocus={(e) => {
+              // Prevent Radix from focusing the trigger button (at top of page), which causes scroll-to-top
+              e.preventDefault();
+              restoreScrollPosition();
+            }}
+          >
             <DialogHeader>
               <DialogTitle>{editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}</DialogTitle>
             </DialogHeader>
